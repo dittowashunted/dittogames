@@ -1,0 +1,86 @@
+export const GAMES = [
+  {
+    id: 'snake',
+    name: 'Snake',
+    icon: '🐍',
+    mode: 'solo',
+    desc: 'Guide your snake to eat, grow, and avoid the walls (and yourself). A classic arcade favorite.',
+    load: () => import('./snake.js'),
+  },
+  {
+    id: 'super-tic-tac-toe',
+    name: 'Super Tic Tac Toe',
+    icon: '🔳',
+    mode: 'online',
+    desc: 'Nine boards in one. Win three mini-boards in a row to take the meta-board. Send a friend the code.',
+    load: () => import('./supertictactoe.js'),
+  },
+  {
+    id: 'tic-tac-toe',
+    name: 'Tic Tac Toe',
+    icon: '❌',
+    mode: 'online',
+    desc: 'The classic 3-in-a-row game. Create a room, share the code, play with a friend anywhere.',
+    load: () => import('./tictactoe.js'),
+  },
+  {
+    id: 'connect-four',
+    name: 'Connect Four',
+    icon: '🔴',
+    mode: 'online',
+    desc: 'Drop discs down the grid and connect four in a row before your friend does.',
+    load: () => import('./connectfour.js'),
+  },
+  {
+    id: 'rock-paper-scissors',
+    name: 'Rock Paper Scissors',
+    icon: '✊',
+    mode: 'online',
+    desc: 'Best-of-5 showdown. Lock in your move before your friend does — reveal happens together.',
+    load: () => import('./rps.js'),
+  },
+  {
+    id: 'dots-and-boxes',
+    name: 'Dots and Boxes',
+    icon: '🔲',
+    mode: 'online',
+    desc: 'Claim lines, complete boxes, and outsmart your friend for the most territory.',
+    load: () => import('./dotsandboxes.js'),
+  },
+  {
+    id: '2048',
+    name: '2048',
+    icon: '🧩',
+    mode: 'solo',
+    desc: 'Slide and merge matching tiles to reach the elusive 2048 tile (and beyond).',
+    load: () => import('./game2048.js'),
+  },
+  {
+    id: 'memory-match',
+    name: 'Memory Match',
+    icon: '🧠',
+    mode: 'solo',
+    desc: 'Flip cards, find every pair, and beat your best time and move count.',
+    load: () => import('./memory.js'),
+  },
+  {
+    id: 'breakout',
+    name: 'Breakout',
+    icon: '🧱',
+    mode: 'solo',
+    desc: 'Smash every brick with a bouncing ball before you run out of lives.',
+    load: () => import('./breakout.js'),
+  },
+  {
+    id: 'minesweeper',
+    name: 'Minesweeper',
+    icon: '💣',
+    mode: 'solo',
+    desc: 'Clear the whole field without triggering a single mine. Flag the ones you find.',
+    load: () => import('./minesweeper.js'),
+  },
+];
+
+export function getGame(id) {
+  return GAMES.find((g) => g.id === id) || null;
+}

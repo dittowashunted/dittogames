@@ -1,0 +1,15 @@
+{
+  "name": "dittogames",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DittoGames - play classic games solo or online with a friend using a room code",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
