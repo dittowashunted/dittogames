@@ -554,10 +554,17 @@ body {
   display: grid; gap: 22px;
   grid-template-columns: repeat(2, 1fr);
 }
-.hub-grid .poll-card { aspect-ratio: 1.7 / 1; }
 
-.poll-card--games-hub { background: linear-gradient(155deg, #d9622f 0%, #7a2f11 100%); }
-.poll-card--polls-hub { background: linear-gradient(155deg, #1f8a72 0%, #0c332b 100%); }
+/* These two carry custom art with the title baked into the image itself
+   (see public/img/cards/games.jpg, polls.jpg) — no HTML text overlay needed,
+   so the legibility scrim is switched off and the title is screen-reader-only. */
+.poll-card--games-hub, .poll-card--polls-hub { background: #fdfaf3; }
+.poll-card--games-hub::after, .poll-card--polls-hub::after { content: none; }
+.poll-card--games-hub .poll-card__emoji, .poll-card--polls-hub .poll-card__emoji,
+.poll-card--games-hub .poll-card__tagline, .poll-card--polls-hub .poll-card__tagline { display: none; }
+.poll-card--games-hub .poll-card__title, .poll-card--polls-hub .poll-card__title {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap;
+}
 
 /* ---------- Polls: poll page ---------- */
 .poll-page { max-width: 880px; margin: 0 auto; }
@@ -668,6 +675,9 @@ body {
   .rps-slot { width: 68px; height: 68px; font-size: 2rem; }
   .game-grid, .poll-grid, .hub-grid { grid-template-columns: 1fr; }
   .game-card, .poll-card { aspect-ratio: 2.2 / 1; padding: 18px; }
+  /* These two keep their wider native ratio (matches the source art) so the
+     baked-in "GAMES"/"POLLS" text doesn't get cropped on narrow screens. */
+  .hub-grid .poll-card--games-hub, .hub-grid .poll-card--polls-hub { aspect-ratio: 2.68 / 1; }
   .poll-your-pick { flex-direction: column; align-items: flex-start; }
   .result-row__stats { text-align: left; }
 }
