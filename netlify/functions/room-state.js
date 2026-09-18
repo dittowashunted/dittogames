@@ -1,9 +1,11 @@
+const { connectLambda } = require('@netlify/blobs');
 const { getRoom } = require('./lib/store');
 const { getGameEngine } = require('./lib/games');
 const { isExpired, findPlayer, sanitizeRoom } = require('./lib/room');
 const { json, badRequest, notFound, forbidden, gone, serverError } = require('./lib/http');
 
 exports.handler = async (event) => {
+  if (event.blobs) connectLambda(event);
   if (event.httpMethod !== 'GET') return badRequest('Use GET');
 
   const params = event.queryStringParameters || {};

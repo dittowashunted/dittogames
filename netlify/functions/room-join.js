@@ -1,3 +1,4 @@
+const { connectLambda } = require('@netlify/blobs');
 const { getRoom, putRoom } = require('./lib/store');
 const { generateId } = require('./lib/ids');
 const { getGameEngine } = require('./lib/games');
@@ -5,6 +6,7 @@ const { isExpired, sanitizeRoom, sanitizeName } = require('./lib/room');
 const { json, badRequest, notFound, gone, conflict, parseBody, serverError } = require('./lib/http');
 
 exports.handler = async (event) => {
+  if (event.blobs) connectLambda(event);
   if (event.httpMethod !== 'POST') return badRequest('Use POST');
 
   const body = parseBody(event);

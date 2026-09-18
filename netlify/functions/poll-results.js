@@ -1,8 +1,10 @@
+const { connectLambda } = require('@netlify/blobs');
 const { getPoll } = require('./lib/polls/registry');
 const { getPollData, computeStats } = require('./lib/pollstore');
 const { json, badRequest, notFound, serverError } = require('./lib/http');
 
 exports.handler = async (event) => {
+  if (event.blobs) connectLambda(event);
   if (event.httpMethod !== 'GET') return badRequest('Use GET');
 
   const params = event.queryStringParameters || {};

@@ -244,6 +244,12 @@ export function mount(container, meta) {
         fetchPollResults(pollId, voterId),
       ]);
       if (destroyed) return;
+      if (!options || !Array.isArray(options.options)) {
+        throw new Error('poll-options returned an unexpected response');
+      }
+      if (!results || !Array.isArray(results.results)) {
+        throw new Error('poll-results returned an unexpected response');
+      }
       poll = options;
       poll.options.forEach((o) => optionsById.set(o.id, o));
       stats = results;
@@ -255,9 +261,11 @@ export function mount(container, meta) {
     } catch (err) {
       if (destroyed) return;
       console.error('Failed to load poll', pollId, err);
+      const detail = err && err.message ? String(err.message) : 'Unknown error';
       container.innerHTML = `
         <div class="error-state">
           <p>Could not load this poll.</p>
+          <p class="mt-16 text-dim" style="font-size:0.82rem;">${escapeHtml(detail)}</p>
           <p class="mt-16"><a class="btn btn--secondary" href="#/polls">Back to all polls</a></p>
         </div>`;
     }
