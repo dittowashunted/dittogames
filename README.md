@@ -22,6 +22,10 @@ A static site + a handful of Netlify Functions, deployed on Netlify. No build st
 
 All ten work on desktop (mouse + keyboard) and mobile (touch, swipe, on-screen controls where relevant). Room codes can also be shared as a link (`?join=CODE`) — opening it on a friend's phone joins the room automatically.
 
+## Polls
+
+A separate `#/polls` section, one question at a time, styled as a grid of colorful cards. The first poll is **Favorite Album of All Time** — voters pick from a fixed list of 200+ well-known albums (`netlify/functions/lib/polls/albums.js`) instead of typing free text, so results stay clean and comparable. After voting you see live stats: total votes, a ranked results list with vote counts/percentages, and where your own pick landed.
+
 ## How multiplayer works
 
 Each online game has a small, pure, server-side "reducer" (`netlify/functions/lib/games/*.js`) that owns the rules — board state, turn order, win/draw detection, and validation (can't move out of turn, can't play a taken square, etc.). Netlify Functions (`netlify/functions/room-*.js`) expose that as a tiny REST API:
@@ -34,6 +38,16 @@ Each online game has a small, pure, server-side "reducer" (`netlify/functions/li
 Room documents are stored in a Netlify Blobs store named `rooms`, keyed by room code. The browser client (`public/js/room-client.js`) polls once a second while the tab is visible and applies updates optimistically after its own moves, so play feels responsive without needing WebSockets. Rock Paper Scissors hides the opponent's pick server-side until both players have locked one in, so there's no peeking via devtools.
 
 Rooms with no activity for 2 hours are treated as expired. There's no account system — a player's seat in a room (their id + a private token) is kept in `localStorage`, which is what lets a page refresh rejoin the same game in progress.
+
+## How polls work
+
+Each poll has a fixed option list defined server-side (`netlify/functions/lib/polls/registry.js`), so the client can never submit an option that doesn't exist. Three functions serve the poll:
+
+- `GET /.netlify/functions/poll-options?poll=<id>` — the poll's title, tagline, and full option list
+- `POST /.netlify/functions/poll-vote` — record (or change) a vote, returns updated stats
+- `GET /.netlify/functions/poll-results?poll=<id>` — current stats without voting
+
+Poll data lives in a Netlify Blobs store named `polls`, one document per poll: vote counts per option plus a map of voter id → chosen option (so changing your vote decrements the old option and increments the new one instead of double-counting). A random voter id is generated once and kept in `localStorage`, the same trust model the multiplayer rooms use — there's no account system, so it's not vote-fraud-proof, just casual-poll-appropriate. The UI itself (`public/js/polls/choice-poll.js`) is a generic "pick one from a searchable list" component — a new poll only needs a registry entry and an option list, not new UI code.
 
 ## Local development
 
@@ -57,21 +71,30 @@ This runs `netlify dev`, which serves `public/` and emulates the functions (incl
 netlify.toml                    # publish dir, functions dir, SPA redirect
 netlify/functions/
   room-create.js, room-join.js, room-state.js, room-action.js
+  poll-options.js, poll-vote.js, poll-results.js
   lib/
-    store.js                    # Netlify Blobs read/write helpers
+    store.js                    # Netlify Blobs read/write helpers (rooms)
+    pollstore.js                 # Netlify Blobs read/write + stats helpers (polls)
     room.js                     # sanitizing room state per-viewer, token checks
     ids.js, http.js
     games/                      # one pure reducer per online game + registry
+    polls/
+      albums.js                 # option list for the "Favorite Album" poll
+      registry.js                # poll id -> title/tagline/options + valid-option lookup
 public/
   index.html                    # app shell (header, theme toggle, #view mount point)
   css/main.css                  # entire design system + every game's board styles
   js/
-    app.js                      # hash router, dynamically imports each game module
+    app.js                      # hash router, dynamically imports each game/poll module
     room-client.js               # polling client for the room API
     online-shell.js              # shared lobby/status-bar/rematch chrome for online games
     storage.js, profile.js, toast.js, util.js
     games/                      # one module per game; solo games are self-contained,
                                  # online games plug their board renderer into online-shell.js
+    polls/
+      registry.js                # poll cards shown on the #/polls hub
+      choice-poll.js              # generic "pick one from a searchable list" poll UI
+      poll-client.js, voter.js    # fetch helpers + persistent voter id in localStorage
 ```
 
 Every game is a plain ES module exporting `mount(container, meta, params)`, which returns a cleanup function. The router in `app.js` calls that cleanup before navigating away, so timers/intervals/listeners don't leak between games.
@@ -81,3 +104,4 @@ Every game is a plain ES module exporting `mount(container, meta, params)`, whic
 - No reconnect-on-a-different-device: room credentials live in `localStorage`, so resuming a game requires the same browser.
 - No presence/disconnect detection beyond an explicit "Leave game" (which forfeits the match to the other player).
 - Room codes aren't rate-limited; this is built for casual play with friends, not as a public matchmaking service.
+- Poll votes are keyed by a random id in `localStorage`, not an account — clearing storage or voting from another browser lets someone vote again. Fine for a casual poll, not ballot-proof.

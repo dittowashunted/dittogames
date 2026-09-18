@@ -1,4 +1,5 @@
 import { GAMES } from './games/registry.js';
+import { POLLS } from './polls/registry.js';
 
 const view = document.getElementById('view');
 let activeCleanup = null;
@@ -53,6 +54,35 @@ function renderHome(container) {
   `;
 }
 
+function pollCard(poll) {
+  if (poll.status !== 'live') {
+    return `
+      <div class="poll-card ${poll.theme}" aria-disabled="true">
+        <span class="poll-card__badge poll-card__badge--soon">Coming soon</span>
+        <span class="poll-card__emoji">${poll.emoji}</span>
+        <h3 class="poll-card__title">${poll.title}</h3>
+        <p class="poll-card__tagline">${poll.tagline}</p>
+      </div>`;
+  }
+  return `
+    <a class="poll-card ${poll.theme}" href="#/polls/${poll.id}">
+      <span class="poll-card__badge poll-card__badge--live"><span class="poll-card__badge-dot"></span>Live</span>
+      <span class="poll-card__emoji">${poll.emoji}</span>
+      <h3 class="poll-card__title">${poll.title}</h3>
+      <p class="poll-card__tagline">${poll.tagline}</p>
+    </a>`;
+}
+
+function renderPollsHome(container) {
+  container.innerHTML = `
+    <section class="hero poll-hero">
+      <h1>Ditto<span class="hero__accent">Polls</span></h1>
+      <p>One question at a time. Pick from a real list, see what everyone else picked.</p>
+    </section>
+    <div class="poll-grid">${POLLS.map(pollCard).join('')}</div>
+  `;
+}
+
 function renderNotFound(container) {
   container.innerHTML = `
     <div class="not-found">
@@ -67,6 +97,39 @@ function gamePageShell() {
       <a class="back-link" href="#/">&larr; All games</a>
     </div>
     <div id="game-mount"></div>`;
+}
+
+function pollPageShell() {
+  return `
+    <div class="game-page__header">
+      <a class="back-link" href="#/polls">&larr; All polls</a>
+    </div>
+    <div id="poll-mount"></div>`;
+}
+
+async function loadPollRoute(pollId) {
+  const meta = POLLS.find((p) => p.id === pollId && p.status === 'live');
+  if (!meta) {
+    renderNotFound(view);
+    return;
+  }
+  document.title = `${meta.title} — DittoPolls`;
+  view.innerHTML = `<div class="game-loading">Loading ${meta.title}&hellip;</div>`;
+  try {
+    const mod = meta.type === 'choice' ? await import('./polls/choice-poll.js') : null;
+    if (!mod) throw new Error(`Unknown poll type: ${meta.type}`);
+    view.innerHTML = pollPageShell();
+    const mountEl = document.getElementById('poll-mount');
+    const cleanup = mod.mount(mountEl, meta);
+    activeCleanup = typeof cleanup === 'function' ? cleanup : null;
+  } catch (err) {
+    console.error('Failed to load poll', meta.id, err);
+    view.innerHTML = `
+      <div class="error-state">
+        <p>Something went wrong loading ${meta.title}.</p>
+        <p class="mt-16"><a class="btn btn--secondary" href="#/polls">Back to all polls</a></p>
+      </div>`;
+  }
 }
 
 async function loadGameRoute(gameId, params) {
@@ -115,6 +178,17 @@ async function router() {
 
   if (section === 'games' && gameId) {
     await loadGameRoute(gameId, params);
+    return;
+  }
+
+  if (section === 'polls' && !gameId) {
+    document.title = 'DittoPolls — pick your favorites';
+    renderPollsHome(view);
+    return;
+  }
+
+  if (section === 'polls' && gameId) {
+    await loadPollRoute(gameId);
     return;
   }
 
