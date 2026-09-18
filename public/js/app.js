@@ -25,17 +25,13 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
   applyTheme(next);
 });
 
-function gameCard(game) {
-  const badgeLabel = game.mode === 'online' ? 'Play Online' : 'Solo';
-  const badgeClass = game.mode === 'online' ? 'badge--online' : 'badge--solo';
+function gameCard(game, index) {
+  const tile = `tile--${(index % 8) + 1}`;
   return `
-    <a class="game-card" href="#/games/${game.id}">
+    <a class="game-card ${tile}" href="#/games/${game.id}">
       <div class="game-card__icon">${game.icon}</div>
       <h3 class="game-card__title">${game.name}</h3>
       <p class="game-card__desc">${game.desc}</p>
-      <div class="game-card__footer">
-        <span class="badge ${badgeClass}"><span class="badge__dot"></span>${badgeLabel}</span>
-      </div>
     </a>`;
 }
 
@@ -44,29 +40,19 @@ function renderHome(container) {
   const solo = GAMES.filter((g) => g.mode === 'solo');
   container.innerHTML = `
     <section class="hero">
-      <h1>Welcome to <span class="hero__accent">DittoGames</span></h1>
-      <p>Free browser games, no sign-up. Play solo, or create a room and send the code to a friend.</p>
+      <h1>Ditto<span class="hero__accent">Games</span></h1>
+      <p>Ten browser games. No sign-up, no ads, no accounts. Just play.</p>
     </section>
-    <h2 class="section-title">Play online with a friend</h2>
+    <h2 class="section-title">Play with a friend</h2>
     <div class="game-grid">${online.map(gameCard).join('')}</div>
-    <h2 class="section-title">Solo games</h2>
+    <h2 class="section-title">Solo</h2>
     <div class="game-grid">${solo.map(gameCard).join('')}</div>
   `;
 }
 
 function pollCard(poll) {
-  if (poll.status !== 'live') {
-    return `
-      <div class="poll-card ${poll.theme}" aria-disabled="true">
-        <span class="poll-card__badge poll-card__badge--soon">Coming soon</span>
-        <span class="poll-card__emoji">${poll.emoji}</span>
-        <h3 class="poll-card__title">${poll.title}</h3>
-        <p class="poll-card__tagline">${poll.tagline}</p>
-      </div>`;
-  }
   return `
     <a class="poll-card ${poll.theme}" href="#/polls/${poll.id}">
-      <span class="poll-card__badge poll-card__badge--live"><span class="poll-card__badge-dot"></span>Live</span>
       <span class="poll-card__emoji">${poll.emoji}</span>
       <h3 class="poll-card__title">${poll.title}</h3>
       <p class="poll-card__tagline">${poll.tagline}</p>
@@ -77,7 +63,7 @@ function renderPollsHome(container) {
   container.innerHTML = `
     <section class="hero poll-hero">
       <h1>Ditto<span class="hero__accent">Polls</span></h1>
-      <p>One question at a time. Pick from a real list, see what everyone else picked.</p>
+      <p>Pick from a real list. See what everyone else picked.</p>
     </section>
     <div class="poll-grid">${POLLS.map(pollCard).join('')}</div>
   `;

@@ -4,7 +4,7 @@ export const GAMES = [
     name: 'Snake',
     icon: '🐍',
     mode: 'solo',
-    desc: 'Guide your snake to eat, grow, and avoid the walls (and yourself). A classic arcade favorite.',
+    desc: "Eat, grow, don't bite yourself.",
     load: () => import('./snake.js'),
   },
   {
@@ -12,7 +12,7 @@ export const GAMES = [
     name: 'Super Tic Tac Toe',
     icon: '🔳',
     mode: 'online',
-    desc: 'Nine boards in one. Win three mini-boards in a row to take the meta-board. Send a friend the code.',
+    desc: 'Nine boards in one. Tic-tac-toe for people who found tic-tac-toe too easy.',
     load: () => import('./supertictactoe.js'),
   },
   {
@@ -20,7 +20,7 @@ export const GAMES = [
     name: 'Tic Tac Toe',
     icon: '❌',
     mode: 'online',
-    desc: 'The classic 3-in-a-row game. Create a room, share the code, play with a friend anywhere.',
+    desc: 'The original. Share a code, play anywhere.',
     load: () => import('./tictactoe.js'),
   },
   {
@@ -28,7 +28,7 @@ export const GAMES = [
     name: 'Connect Four',
     icon: '🔴',
     mode: 'online',
-    desc: 'Drop discs down the grid and connect four in a row before your friend does.',
+    desc: 'Drop discs, get four in a row, gloat.',
     load: () => import('./connectfour.js'),
   },
   {
@@ -36,7 +36,7 @@ export const GAMES = [
     name: 'Rock Paper Scissors',
     icon: '✊',
     mode: 'online',
-    desc: 'Best-of-5 showdown. Lock in your move before your friend does — reveal happens together.',
+    desc: 'Best of 5. No peeking — reveal happens together.',
     load: () => import('./rps.js'),
   },
   {
@@ -44,7 +44,7 @@ export const GAMES = [
     name: 'Dots and Boxes',
     icon: '🔲',
     mode: 'online',
-    desc: 'Claim lines, complete boxes, and outsmart your friend for the most territory.',
+    desc: 'Draw lines, steal boxes, hold a grudge.',
     load: () => import('./dotsandboxes.js'),
   },
   {
@@ -52,7 +52,7 @@ export const GAMES = [
     name: '2048',
     icon: '🧩',
     mode: 'solo',
-    desc: 'Slide and merge matching tiles to reach the elusive 2048 tile (and beyond).',
+    desc: 'Slide tiles, chase the number, lose an hour.',
     load: () => import('./game2048.js'),
   },
   {
@@ -60,7 +60,7 @@ export const GAMES = [
     name: 'Memory Match',
     icon: '🧠',
     mode: 'solo',
-    desc: 'Flip cards, find every pair, and beat your best time and move count.',
+    desc: 'Flip cards, find pairs, beat your own record.',
     load: () => import('./memory.js'),
   },
   {
@@ -68,7 +68,7 @@ export const GAMES = [
     name: 'Breakout',
     icon: '🧱',
     mode: 'solo',
-    desc: 'Smash every brick with a bouncing ball before you run out of lives.',
+    desc: 'Bounce a ball, smash bricks, repeat.',
     load: () => import('./breakout.js'),
   },
   {
@@ -76,7 +76,7 @@ export const GAMES = [
     name: 'Minesweeper',
     icon: '💣',
     mode: 'solo',
-    desc: 'Clear the whole field without triggering a single mine. Flag the ones you find.',
+    desc: 'Clear the field. Trust the numbers.',
     load: () => import('./minesweeper.js'),
   },
 ];
