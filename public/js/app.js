@@ -25,10 +25,29 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
   applyTheme(next);
 });
 
+const LOGO_MARK_SVG = `
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect width="64" height="64" rx="16" fill="currentColor"/>
+    <circle cx="22" cy="24" r="5.5" fill="#faf5ea"/>
+    <circle cx="42" cy="24" r="5.5" fill="#faf5ea"/>
+    <circle cx="22" cy="42" r="5.5" fill="#faf5ea"/>
+    <circle cx="42" cy="42" r="5.5" fill="#faf5ea"/>
+    <circle cx="32" cy="33" r="5.5" fill="#faf5ea"/>
+  </svg>`;
+
+function wordmark(word1, word2) {
+  return `<h1 class="hero__wordmark">${word1}<span class="hero__dot">${LOGO_MARK_SVG}</span><span class="hero__accent">${word2}</span></h1>`;
+}
+
+function cardArt(id) {
+  return `<div class="card-art" style="background-image:url('/img/cards/${id}.jpg')"></div>`;
+}
+
 function gameCard(game, index) {
   const tile = `tile--${(index % 8) + 1}`;
   return `
     <a class="game-card ${tile}" href="#/games/${game.id}">
+      ${cardArt(game.id)}
       <div class="game-card__icon">${game.icon}</div>
       <h3 class="game-card__title">${game.name}</h3>
       <p class="game-card__desc">${game.desc}</p>
@@ -40,7 +59,7 @@ function renderHome(container) {
   const solo = GAMES.filter((g) => g.mode === 'solo');
   container.innerHTML = `
     <section class="hero">
-      <h1>Ditto<span class="hero__accent">Games</span></h1>
+      ${wordmark('DITTO', 'GAMES')}
       <p>Ten browser games. No sign-up, no ads, no accounts. Just play.</p>
     </section>
     <h2 class="section-title">Play with a friend</h2>
@@ -53,6 +72,7 @@ function renderHome(container) {
 function pollCard(poll) {
   return `
     <a class="poll-card ${poll.theme}" href="#/polls/${poll.id}">
+      ${cardArt(poll.id)}
       <span class="poll-card__emoji">${poll.emoji}</span>
       <h3 class="poll-card__title">${poll.title}</h3>
       <p class="poll-card__tagline">${poll.tagline}</p>
@@ -62,7 +82,7 @@ function pollCard(poll) {
 function renderPollsHome(container) {
   container.innerHTML = `
     <section class="hero poll-hero">
-      <h1>Ditto<span class="hero__accent">Polls</span></h1>
+      ${wordmark('DITTO', 'POLLS')}
       <p>Pick from a real list. See what everyone else picked.</p>
     </section>
     <div class="poll-grid">${POLLS.map(pollCard).join('')}</div>

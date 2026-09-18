@@ -156,13 +156,20 @@ body {
 
 /* ---------- Hero ---------- */
 .hero { text-align: center; padding: 4px 0 36px; }
-.hero h1 { font-family: var(--font-display); font-size: clamp(2.2rem, 7vw, 3.6rem); font-weight: 700; letter-spacing: -0.5px; }
-.hero p { margin-top: 8px; color: var(--color-text-dim); font-size: clamp(0.95rem, 2vw, 1.05rem); }
+.hero p { margin-top: 10px; color: var(--color-text-dim); font-size: clamp(0.95rem, 2vw, 1.05rem); }
+.hero__wordmark {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.22em;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(2.1rem, 7vw, 3.5rem); letter-spacing: 0.5px; line-height: 1;
+}
+.hero__dot { width: 0.62em; height: 0.62em; flex: none; color: var(--color-primary); }
+.hero__dot svg { width: 100%; height: 100%; display: block; }
 .hero__accent { color: var(--color-primary); }
 
-/* ---------- Tile palette (shared by game + poll cards) ----------
-   Fixed, theme-independent colors — like paper cut-outs, they keep their
-   own identity whether the site chrome is in light or dark mode. */
+/* ---------- Tile palette (fallback colors for game + poll cards) ----------
+   Shown until a custom background image is dropped in at the path each card
+   references (see public/img/cards/README.md). Fixed, theme-independent —
+   like paper cut-outs, they keep their identity in light or dark mode. */
 .tile--1 { background: #f7ecd7; border-color: #e8d3a0; }
 .tile--2 { background: #d9ede0; border-color: #a9d4b8; }
 .tile--3 { background: #dbe9f7; border-color: #a9cdec; }
@@ -171,29 +178,49 @@ body {
 .tile--6 { background: #efe2c8; border-color: #ddc48c; }
 .tile--7 { background: #d7f0ec; border-color: #a3ddd2; }
 .tile--8 { background: #fbe0cf; border-color: #f0b98e; }
-.tile--1, .tile--2, .tile--3, .tile--4, .tile--5, .tile--6, .tile--7, .tile--8 { color: #2b2013; }
 
 /* ---------- Game grid / cards ---------- */
-.game-grid {
-  display: grid; gap: 18px;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+.game-grid, .poll-grid {
+  display: grid; gap: 22px;
+  grid-template-columns: repeat(3, 1fr);
 }
-.game-card {
+.game-card, .poll-card {
   position: relative; overflow: hidden;
   display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
-  min-height: 168px;
+  aspect-ratio: 2.7 / 1;
   border: 2px solid; border-radius: var(--radius-lg); padding: 20px;
-  text-decoration: none;
+  text-decoration: none; color: inherit;
   box-shadow: var(--shadow-sm);
+  background-size: cover; background-position: center;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.game-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-.game-card:active { transform: translateY(-1px); }
-.game-card__icon {
-  position: absolute; top: 18px; right: 20px; font-size: 2.3rem; opacity: 0.95; line-height: 1;
+.game-card:hover, a.poll-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.game-card:active, a.poll-card:active { transform: translateY(-1px); }
+
+/* Custom art layer: an <img> the card can carry once you've dropped a file in
+   at its documented path. Missing file = renders nothing = tile color still
+   shows through underneath, so this is always safe to leave in the markup. */
+.card-art {
+  position: absolute; inset: 0; z-index: 0;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
 }
-.game-card__title { font-family: var(--font-display); font-weight: 700; font-size: 1.14rem; max-width: 78%; }
-.game-card__desc { font-size: 0.86rem; line-height: 1.42; opacity: 0.72; max-width: 90%; }
+
+/* Scrim: guarantees the title/tagline stay legible over ANY art, light or dark. */
+.game-card::after, .poll-card::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(to top, rgba(20, 14, 6, 0.78) 0%, rgba(20, 14, 6, 0.32) 45%, transparent 72%);
+}
+
+.game-card__icon, .game-card__title, .game-card__desc,
+.poll-card__emoji, .poll-card__title, .poll-card__tagline {
+  position: relative; z-index: 2;
+}
+.game-card__icon, .poll-card__emoji {
+  position: absolute; top: 18px; right: 20px; font-size: 2.3rem; line-height: 1;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.35));
+}
+.game-card__title, .poll-card__title { font-family: var(--font-display); font-weight: 700; font-size: 1.14rem; max-width: 78%; color: #fff; }
+.game-card__desc, .poll-card__tagline { font-size: 0.86rem; line-height: 1.42; max-width: 90%; color: rgba(255, 255, 255, 0.85); }
 
 /* ---------- Section headers ---------- */
 .section-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin: 36px 0 14px; color: var(--color-text); }
@@ -476,34 +503,19 @@ body {
 .memory-card__face--front { background: var(--color-surface); border: 1px solid var(--color-border); transform: rotateY(180deg); }
 .memory-card.matched .memory-card__face--front { background: color-mix(in srgb, var(--color-success) 20%, var(--color-surface)); }
 
-/* ---------- Polls: hub grid ---------- */
+/* ---------- Polls: hub grid ----------
+   Theme variants below are the fallback look, same deal as the game tiles:
+   drop a custom image at each poll's documented path and it layers on top,
+   art unavailable yet = this gradient still shows through underneath. Their
+   decorative texture uses ::before (::after is reserved site-wide for the
+   text-legibility scrim, see the shared .poll-card::after rule above). */
 .poll-hero { padding-bottom: 28px; }
-
-.poll-grid {
-  display: grid; gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-}
-.poll-card {
-  position: relative; overflow: hidden;
-  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px;
-  min-height: 190px; padding: 24px; border-radius: var(--radius-lg);
-  text-decoration: none; color: inherit; border: 2px solid transparent;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-a.poll-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-a.poll-card:active { transform: translateY(-1px); }
-
-.poll-card__emoji { position: absolute; top: 18px; right: 20px; font-size: 2.4rem; opacity: 0.9; }
-.poll-card__title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; max-width: 80%; }
-.poll-card__tagline { font-size: 0.88rem; opacity: 0.85; line-height: 1.4; max-width: 88%; }
 
 .poll-card--vinyl {
   background: radial-gradient(circle at 85% 8%, #2b2352 0%, #14102b 55%, #0b0920 100%);
-  color: #f4f0ff;
 }
-.poll-card--vinyl::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.25;
+.poll-card--vinyl::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.25;
   background-image: radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px);
   background-size: 26px 26px;
 }
@@ -513,10 +525,9 @@ a.poll-card:active { transform: translateY(-1px); }
     radial-gradient(circle at 12% 92%, rgba(255, 46, 136, 0.55) 0%, transparent 45%),
     radial-gradient(circle at 88% 8%, rgba(0, 229, 255, 0.5) 0%, transparent 50%),
     linear-gradient(160deg, #1a0b3d 0%, #0b0620 75%);
-  color: #f4f0ff;
 }
-.poll-card--arcade::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.22;
+.poll-card--arcade::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.22;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.6) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.6) 1px, transparent 1px);
@@ -527,16 +538,16 @@ a.poll-card:active { transform: translateY(-1px); }
 
 .poll-card--reel {
   background: linear-gradient(160deg, #4a1620 0%, #1c0509 75%);
-  color: #fbe9d0;
 }
-.poll-card--reel::before,
-.poll-card--reel::after {
-  content: ''; position: absolute; left: 0; right: 0; height: 14px; pointer-events: none; opacity: 0.55;
-  background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.6) 0 8px, transparent 8px 20px);
-  background-position: center;
+.poll-card--reel::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.55;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.6) 0 8px, transparent 8px 20px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.6) 0 8px, transparent 8px 20px);
+  background-size: 100% 14px, 100% 14px;
+  background-position: top, bottom;
+  background-repeat: no-repeat, no-repeat;
 }
-.poll-card--reel::before { top: 0; }
-.poll-card--reel::after { bottom: 0; }
 
 /* ---------- Polls: poll page ---------- */
 .poll-page { max-width: 880px; margin: 0 auto; }
@@ -635,6 +646,9 @@ a.poll-card:active { transform: translateY(-1px); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 
 /* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .game-grid, .poll-grid { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 640px) {
   .site-header__inner { height: 56px; }
   .brand__name { font-size: 1.1rem; }
@@ -642,7 +656,8 @@ a.poll-card:active { transform: translateY(-1px); }
   .lobby__choices { flex-direction: column; }
   .rps-choice { width: 76px; height: 76px; font-size: 1.8rem; }
   .rps-slot { width: 68px; height: 68px; font-size: 2rem; }
-  .poll-card { min-height: 150px; padding: 20px; }
+  .game-grid, .poll-grid { grid-template-columns: 1fr; }
+  .game-card, .poll-card { aspect-ratio: 2.2 / 1; padding: 18px; }
   .poll-your-pick { flex-direction: column; align-items: flex-start; }
   .result-row__stats { text-align: left; }
 }

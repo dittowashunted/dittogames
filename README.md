@@ -91,6 +91,7 @@ netlify/functions/
 public/
   index.html                    # app shell (header, theme toggle, #view mount point)
   css/main.css                  # entire design system + every game's board styles
+  img/cards/                    # custom card art, one <id>.jpg per game/poll (see its README)
   js/
     app.js                      # hash router, dynamically imports each game/poll module
     room-client.js               # polling client for the room API
