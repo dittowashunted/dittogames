@@ -15,12 +15,16 @@ function pctValue(count, total) {
   return total ? (count / total) * 100 : 0;
 }
 
+function pluralize(word) {
+  return `${word}s`;
+}
+
 export function mount(container, meta) {
   const pollId = meta.id;
   const voterId = getVoterId();
   let destroyed = false;
 
-  let poll = null; // { id, title, tagline, options }
+  let poll = null; // { id, title, tagline, itemLabel, subtitleLabel, options }
   const optionsById = new Map();
   let stats = { total: 0, results: [], yourVote: null };
   let tab = getMyVote(pollId) ? 'results' : 'vote';
@@ -32,6 +36,8 @@ export function mount(container, meta) {
   let els = null;
 
   function buildShell() {
+    const itemPlural = pluralize(poll.itemLabel);
+    const subtitlePlural = pluralize(poll.subtitleLabel);
     container.innerHTML = `
       <div class="poll-page">
         <div class="poll-page__head">
@@ -46,7 +52,7 @@ export function mount(container, meta) {
         </div>
         <div class="poll-panel" data-panel="vote">
           <input class="text-input poll-search" type="search" autocomplete="off" spellcheck="false"
-            placeholder="Search ${poll.options.length} albums or artists&hellip;" data-el="search" />
+            placeholder="Search ${poll.options.length} ${escapeHtml(itemPlural)} or ${escapeHtml(subtitlePlural)}&hellip;" data-el="search" />
           <p class="poll-panel__hint" data-el="shown-hint"></p>
           <div class="option-panel"><div class="option-grid" data-el="option-grid"></div></div>
         </div>
@@ -108,20 +114,21 @@ export function mount(container, meta) {
 
   function matchesSearch(option, query) {
     if (!query) return true;
-    const haystack = `${option.artist} ${option.title}`.toLowerCase();
+    const haystack = `${option.subtitle} ${option.title}`.toLowerCase();
     return haystack.includes(query);
   }
 
   function renderOptionGrid() {
     const query = search.trim().toLowerCase();
     const matches = poll.options.filter((o) => matchesSearch(o, query));
+    const itemPlural = pluralize(poll.itemLabel);
 
     els.shownHint.textContent = query
-      ? `Showing ${matches.length} of ${poll.options.length} albums`
-      : `Tap an album to vote — ${poll.options.length} total`;
+      ? `Showing ${matches.length} of ${poll.options.length} ${itemPlural}`
+      : `Tap a ${poll.itemLabel} to vote — ${poll.options.length} total`;
 
     if (!matches.length) {
-      els.optionGrid.innerHTML = '<p class="option-empty">No albums match your search.</p>';
+      els.optionGrid.innerHTML = `<p class="option-empty">No ${escapeHtml(itemPlural)} match your search.</p>`;
       return;
     }
 
@@ -133,7 +140,7 @@ export function mount(container, meta) {
             data-option-id="${escapeHtml(o.id)}" ${voting ? 'disabled' : ''}>
             ${selected ? '<span class="option-card__badge">Your pick</span>' : ''}
             <span class="option-card__title">${escapeHtml(o.title)}</span>
-            <span class="option-card__meta">${escapeHtml(o.artist)} &middot; ${o.year}</span>
+            <span class="option-card__meta">${escapeHtml(o.subtitle)} &middot; ${o.year}</span>
           </button>`;
       })
       .join('');
@@ -145,7 +152,7 @@ export function mount(container, meta) {
     if (!stats.total) {
       els.resultsContent.innerHTML = `
         <div class="results-empty">
-          <p>No votes yet — be the first to pick an album!</p>
+          <p>No votes yet — be the first to pick a ${escapeHtml(poll.itemLabel)}!</p>
           <button class="btn btn--primary mt-16" type="button" data-action="change-vote">Vote now</button>
         </div>`;
       return;
@@ -162,7 +169,7 @@ export function mount(container, meta) {
         <div class="poll-your-pick">
           <div>
             <span class="poll-your-pick__label">Your pick</span>
-            <strong>${escapeHtml(yourVoteOption.title)}</strong> &mdash; ${escapeHtml(yourVoteOption.artist)}
+            <strong>${escapeHtml(yourVoteOption.title)}</strong> &mdash; ${escapeHtml(yourVoteOption.subtitle)}
             <span class="text-dim">(#${yourRank} with ${yourVoteCount} vote${yourVoteCount === 1 ? '' : 's'})</span>
           </div>
           <button class="btn btn--secondary btn--sm" type="button" data-action="change-vote">Change vote</button>
@@ -186,7 +193,7 @@ export function mount(container, meta) {
               <span class="result-row__rank">${i + 1}</span>
               <span class="result-row__main">
                 <span class="result-row__title">${escapeHtml(option.title)}</span>
-                <span class="result-row__artist">${escapeHtml(option.artist)}</span>
+                <span class="result-row__subtitle">${escapeHtml(option.subtitle)}</span>
               </span>
               <span class="result-row__stats">
                 <strong>${formatPct(r.count, stats.total)}</strong>

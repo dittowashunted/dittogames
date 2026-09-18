@@ -12,6 +12,8 @@ exports.handler = async (event) => {
     id: poll.id,
     title: poll.title,
     tagline: poll.tagline,
-    options: poll.options.map(({ id, artist, title, year }) => ({ id, artist, title, year })),
+    itemLabel: poll.itemLabel,
+    subtitleLabel: poll.subtitleLabel,
+    options: poll.options.map(({ id, subtitle, title, year }) => ({ id, subtitle, title, year })),
   });
 };

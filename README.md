@@ -24,7 +24,13 @@ All ten work on desktop (mouse + keyboard) and mobile (touch, swipe, on-screen c
 
 ## Polls
 
-A separate `#/polls` section, one question at a time, styled as a grid of colorful cards. The first poll is **Favorite Album of All Time** — voters pick from a fixed list of 200+ well-known albums (`netlify/functions/lib/polls/albums.js`) instead of typing free text, so results stay clean and comparable. After voting you see live stats: total votes, a ranked results list with vote counts/percentages, and where your own pick landed.
+A separate `#/polls` section, one question at a time, styled as a grid of colorful cards. Voters pick from a fixed, curated list instead of typing free text, so results stay clean and comparable:
+
+- **Favorite Album of All Time** — 200+ well-known albums (`netlify/functions/lib/polls/albums.js`)
+- **Best Video Game of All Time** — 120+ acclaimed games across eras and platforms (`netlify/functions/lib/polls/videogames.js`)
+- **Greatest Movie of All Time** — 125+ acclaimed films (`netlify/functions/lib/polls/movies.js`)
+
+After voting you see live stats: total votes, a ranked results list with vote counts/percentages, and where your own pick landed.
 
 ## How multiplayer works
 
@@ -47,7 +53,7 @@ Each poll has a fixed option list defined server-side (`netlify/functions/lib/po
 - `POST /.netlify/functions/poll-vote` — record (or change) a vote, returns updated stats
 - `GET /.netlify/functions/poll-results?poll=<id>` — current stats without voting
 
-Poll data lives in a Netlify Blobs store named `polls`, one document per poll: vote counts per option plus a map of voter id → chosen option (so changing your vote decrements the old option and increments the new one instead of double-counting). A random voter id is generated once and kept in `localStorage`, the same trust model the multiplayer rooms use — there's no account system, so it's not vote-fraud-proof, just casual-poll-appropriate. The UI itself (`public/js/polls/choice-poll.js`) is a generic "pick one from a searchable list" component — a new poll only needs a registry entry and an option list, not new UI code.
+Poll data lives in a Netlify Blobs store named `polls`, one document per poll: vote counts per option plus a map of voter id → chosen option (so changing your vote decrements the old option and increments the new one instead of double-counting). A random voter id is generated once and kept in `localStorage`, the same trust model the multiplayer rooms use — there's no account system, so it's not vote-fraud-proof, just casual-poll-appropriate. The UI itself (`public/js/polls/choice-poll.js`) is a generic "pick one from a searchable list" component driven entirely by registry data (`title`, `tagline`, `itemLabel` e.g. "album"/"game"/"movie", `subtitleLabel` e.g. "artist"/"developer"/"director", and an option list of `{ id, subtitle, title, year }`) — a new poll only needs a registry entry and an option list in `netlify/functions/lib/polls/`, not new UI code. `netlify/functions/lib/polls/build-options.js` turns a plain `[subtitle, title, year]` tuple list into that option shape with stable, unique slug ids.
 
 ## Local development
 
@@ -79,8 +85,9 @@ netlify/functions/
     ids.js, http.js
     games/                      # one pure reducer per online game + registry
     polls/
-      albums.js                 # option list for the "Favorite Album" poll
-      registry.js                # poll id -> title/tagline/options + valid-option lookup
+      build-options.js           # tuple list -> { id, subtitle, title, year } option shape
+      albums.js, videogames.js, movies.js  # option lists, one file per poll
+      registry.js                # poll id -> title/tagline/labels/options + valid-option lookup
 public/
   index.html                    # app shell (header, theme toggle, #view mount point)
   css/main.css                  # entire design system + every game's board styles

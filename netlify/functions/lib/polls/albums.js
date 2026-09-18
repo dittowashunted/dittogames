@@ -1,6 +1,9 @@
+const { buildOptions } = require('./build-options');
+
 // Curated list of widely-recognized albums spanning genres and decades, used as the
 // fixed option set for the "Favorite Album of All Time" poll. Voters pick from this
 // list rather than typing free text, so results stay clean and comparable.
+// Tuples are [artist, title, year].
 const RAW_ALBUMS = [
   ['The Beatles', 'Abbey Road', 1969],
   ["The Beatles", "Sgt. Pepper's Lonely Hearts Club Band", 1967],
@@ -210,22 +213,4 @@ const RAW_ALBUMS = [
   ['System of a Down', 'Toxicity', 2001],
 ];
 
-function slugify(str) {
-  return String(str)
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-const seenSlugs = new Map();
-const ALBUMS = RAW_ALBUMS.map(([artist, title, year]) => {
-  const base = slugify(`${artist}-${title}`);
-  const seenCount = seenSlugs.get(base) || 0;
-  seenSlugs.set(base, seenCount + 1);
-  const id = seenCount === 0 ? base : `${base}-${seenCount + 1}`;
-  return { id, artist, title, year };
-});
-
-module.exports = ALBUMS;
+module.exports = buildOptions(RAW_ALBUMS);
