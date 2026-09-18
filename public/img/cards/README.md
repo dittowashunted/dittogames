@@ -33,17 +33,27 @@ public/img/cards/best-video-game.jpg
 public/img/cards/greatest-movie.jpg
 ```
 
+**Main hub** (the two big "doors" on the `/` homepage):
+
+```
+public/img/cards/games.jpg
+public/img/cards/polls.jpg
+```
+
 ## Format & size
 
 - **Format:** `.jpg`. If you'd rather export `.png` or `.webp`, that's fine —
   just tell me and I'll update the extension in `public/js/app.js`'s
   `cardArt()` function (one line, same convention for every card).
-- **Aspect ratio:** roughly **2.7 : 1** (wide rectangle) — that's the shape
-  the cards render at. Doesn't need to be exact: the image is
-  center-cropped to cover the card (`background-size: cover`), so a little
-  extra margin on the sides or top/bottom is safe.
-- **Recommended export size:** **1260×470px**, or **2520×940px** for a
-  crisper look on retina screens. Larger is fine; the browser scales down.
+- **Aspect ratio:** roughly **2.7 : 1** (wide rectangle) for every game and
+  poll card — that's the shape they render at. The two homepage hub cards
+  (`games.jpg`, `polls.jpg`) are a bit less wide, roughly **1.7 : 1**.
+  Doesn't need to be exact either way: the image is center-cropped to cover
+  the card (`background-size: cover`), so a little extra margin on the
+  sides or top/bottom is safe.
+- **Recommended export size:** **1260×470px** (game/poll cards) or
+  **1200×700px** (the two hub cards), doubled for a crisper look on retina
+  screens. Larger is fine; the browser scales down.
 - Keep the most important part of the composition centered — corners and
   edges are the most likely to get cropped on narrow phone screens (cards
   go full-width, ~2.2:1, below 640px).
@@ -76,3 +86,5 @@ says today:
 | favorite-album | Favorite Album of All Time | 🎧 |
 | best-video-game | Best Video Game of All Time | 🎮 |
 | greatest-movie | Greatest Movie of All Time | 🎬 |
+| games | Games (homepage) | 🎮 |
+| polls | Polls (homepage) | 🗳️ |

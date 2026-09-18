@@ -54,7 +54,44 @@ function gameCard(game, index) {
     </a>`;
 }
 
-function renderHome(container) {
+function hubCard({ id, title, tagline, emoji, theme, href }) {
+  return `
+    <a class="poll-card ${theme}" href="${href}">
+      ${cardArt(id)}
+      <span class="poll-card__emoji">${emoji}</span>
+      <h3 class="poll-card__title">${title}</h3>
+      <p class="poll-card__tagline">${tagline}</p>
+    </a>`;
+}
+
+function renderMainHub(container) {
+  container.innerHTML = `
+    <section class="hero">
+      ${wordmark('DITTO', 'GAMES')}
+      <p>Browser games and quick polls. No sign-up, no ads.</p>
+    </section>
+    <div class="hub-grid">
+      ${hubCard({
+        id: 'games',
+        title: 'Games',
+        tagline: 'Ten browser games — play solo or with a friend.',
+        emoji: '🎮',
+        theme: 'poll-card--games-hub',
+        href: '#/games',
+      })}
+      ${hubCard({
+        id: 'polls',
+        title: 'Polls',
+        tagline: 'Pick from a real list. See what everyone picked.',
+        emoji: '🗳️',
+        theme: 'poll-card--polls-hub',
+        href: '#/polls',
+      })}
+    </div>
+  `;
+}
+
+function renderGamesHome(container) {
   const online = GAMES.filter((g) => g.mode === 'online');
   const solo = GAMES.filter((g) => g.mode === 'solo');
   container.innerHTML = `
@@ -93,14 +130,14 @@ function renderNotFound(container) {
   container.innerHTML = `
     <div class="not-found">
       <p>That page doesn't exist.</p>
-      <p class="mt-16"><a class="btn btn--primary" href="#/">Back to all games</a></p>
+      <p class="mt-16"><a class="btn btn--primary" href="#/">Back home</a></p>
     </div>`;
 }
 
 function gamePageShell() {
   return `
     <div class="game-page__header">
-      <a class="back-link" href="#/">&larr; All games</a>
+      <a class="back-link" href="#/games">&larr; All games</a>
     </div>
     <div id="game-mount"></div>`;
 }
@@ -157,7 +194,7 @@ async function loadGameRoute(gameId, params) {
     view.innerHTML = `
       <div class="error-state">
         <p>Something went wrong loading ${meta.name}.</p>
-        <p class="mt-16"><a class="btn btn--secondary" href="#/">Back to all games</a></p>
+        <p class="mt-16"><a class="btn btn--secondary" href="#/games">Back to all games</a></p>
       </div>`;
   }
 }
@@ -177,8 +214,14 @@ async function router() {
   view.focus({ preventScroll: true });
 
   if (!section) {
-    document.title = 'DittoGames — play together, anywhere';
-    renderHome(view);
+    document.title = 'DittoGames — games and polls';
+    renderMainHub(view);
+    return;
+  }
+
+  if (section === 'games' && !gameId) {
+    document.title = 'DittoGames — all games';
+    renderGamesHome(view);
     return;
   }
 

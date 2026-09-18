@@ -549,6 +549,16 @@ body {
   background-repeat: no-repeat, no-repeat;
 }
 
+/* ---------- Main hub (Games / Polls doors) ---------- */
+.hub-grid {
+  display: grid; gap: 22px;
+  grid-template-columns: repeat(2, 1fr);
+}
+.hub-grid .poll-card { aspect-ratio: 1.7 / 1; }
+
+.poll-card--games-hub { background: linear-gradient(155deg, #d9622f 0%, #7a2f11 100%); }
+.poll-card--polls-hub { background: linear-gradient(155deg, #1f8a72 0%, #0c332b 100%); }
+
 /* ---------- Polls: poll page ---------- */
 .poll-page { max-width: 880px; margin: 0 auto; }
 .poll-page__head { margin-bottom: 20px; }
@@ -656,7 +666,7 @@ body {
   .lobby__choices { flex-direction: column; }
   .rps-choice { width: 76px; height: 76px; font-size: 1.8rem; }
   .rps-slot { width: 68px; height: 68px; font-size: 2rem; }
-  .game-grid, .poll-grid { grid-template-columns: 1fr; }
+  .game-grid, .poll-grid, .hub-grid { grid-template-columns: 1fr; }
   .game-card, .poll-card { aspect-ratio: 2.2 / 1; padding: 18px; }
   .poll-your-pick { flex-direction: column; align-items: flex-start; }
   .result-row__stats { text-align: left; }
