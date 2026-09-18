@@ -36,7 +36,7 @@ const LOGO_MARK_SVG = `
   </svg>`;
 
 function wordmark(word1, word2) {
-  return `<h1 class="hero__wordmark">${word1}<span class="hero__dot">${LOGO_MARK_SVG}</span><span class="hero__accent">${word2}</span></h1>`;
+  return `<h1 class="hero__wordmark"><a href="#/">${word1}<span class="hero__dot">${LOGO_MARK_SVG}</span><span class="hero__accent">${word2}</span></a></h1>`;
 }
 
 function cardArt(id) {
