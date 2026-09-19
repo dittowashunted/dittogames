@@ -1,10 +1,31 @@
 import { getBest, setBestIfHigher } from '../storage.js';
+import { iconFor } from '../icons.js';
 
 const CANVAS_W = 360;
 const CANVAS_H = 480;
 const ROWS = 6;
 const COLS = 8;
 const BRICK_COLORS = ['#f94144', '#f3722c', '#f9c74f', '#90be6d', '#43aa8b', '#577590'];
+
+function shade(hex, percent) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const clamp = (v) => Math.max(0, Math.min(255, v));
+  const amt = Math.round(2.55 * percent);
+  const r = clamp((num >> 16) + amt);
+  const g = clamp(((num >> 8) & 0xff) + amt);
+  const b = clamp((num & 0xff) + amt);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
 const SIDE_MARGIN = 8;
 const BRICK_GAP = 4;
 const BRICK_H = 16;
@@ -24,7 +45,7 @@ function clamp(v, min, max) {
 export function mount(container) {
   container.innerHTML = `
     <div class="game-page">
-      <h1 class="game-page__title">🧱 Breakout</h1>
+      <h1 class="game-page__title"><span class="game-page__title-icon">${iconFor('breakout')}</span>Breakout</h1>
       <div class="arcade-stage">
         <div class="arcade-hud">
           <div class="arcade-hud__item"><span class="arcade-hud__label">Score</span><span class="arcade-hud__value" id="bo-score">0</span></div>
@@ -219,22 +240,51 @@ export function mount(container) {
 
   function draw() {
     const styles = getComputedStyle(document.documentElement);
-    ctx.fillStyle = styles.getPropertyValue('--color-surface-2').trim();
+    const bgBase = styles.getPropertyValue('--color-surface-2').trim();
+    const primary = styles.getPropertyValue('--color-primary').trim();
+
+    const bgGrad = ctx.createRadialGradient(CANVAS_W / 2, CANVAS_H * 0.3, 10, CANVAS_W / 2, CANVAS_H * 0.5, CANVAS_W);
+    bgGrad.addColorStop(0, shade(bgBase, 3));
+    bgGrad.addColorStop(1, shade(bgBase, -4));
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
     bricks.forEach((b) => {
       if (!b.alive) return;
-      ctx.fillStyle = b.color;
-      ctx.fillRect(b.x, b.y, BRICK_W, BRICK_H);
+      const grad = ctx.createLinearGradient(b.x, b.y, b.x, b.y + BRICK_H);
+      grad.addColorStop(0, shade(b.color, 16));
+      grad.addColorStop(1, shade(b.color, -12));
+      ctx.fillStyle = grad;
+      roundRectPath(ctx, b.x, b.y, BRICK_W, BRICK_H, 3);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      roundRectPath(ctx, b.x + 1, b.y + 1, BRICK_W - 2, BRICK_H * 0.4, 2);
+      ctx.fill();
     });
 
-    ctx.fillStyle = styles.getPropertyValue('--color-primary').trim();
-    ctx.fillRect(paddleX, PADDLE_Y, PADDLE_W, PADDLE_H);
+    const paddleGrad = ctx.createLinearGradient(paddleX, PADDLE_Y, paddleX, PADDLE_Y + PADDLE_H);
+    paddleGrad.addColorStop(0, shade(primary, 18));
+    paddleGrad.addColorStop(1, shade(primary, -10));
+    ctx.fillStyle = paddleGrad;
+    roundRectPath(ctx, paddleX, PADDLE_Y, PADDLE_W, PADDLE_H, PADDLE_H / 2);
+    ctx.fill();
 
+    const ballGrad = ctx.createRadialGradient(
+      ball.x - BALL_R * 0.35, ball.y - BALL_R * 0.35, BALL_R * 0.1,
+      ball.x, ball.y, BALL_R
+    );
+    ballGrad.addColorStop(0, '#ffffff');
+    ballGrad.addColorStop(0.4, shade(primary, 25));
+    ballGrad.addColorStop(1, shade(primary, -5));
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
-    ctx.fillStyle = styles.getPropertyValue('--color-text').trim();
+    ctx.fillStyle = ballGrad;
     ctx.fill();
+    ctx.restore();
   }
 
   function loop(ts) {

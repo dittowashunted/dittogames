@@ -1,6 +1,7 @@
 import { mountOnlineGame } from '../online-shell.js';
+import { iconFor } from '../icons.js';
 
-const EMOJI = { rock: '✊', paper: '✋', scissors: '✌️' };
+const CHOICE_ICON = { rock: iconFor('rock'), paper: iconFor('paper'), scissors: iconFor('scissors') };
 const CHOICES = ['rock', 'paper', 'scissors'];
 
 function statusForActive(room, myIndex, opponentName) {
@@ -12,14 +13,17 @@ function statusForActive(room, myIndex, opponentName) {
   return { text: 'Choose rock, paper, or scissors', kind: 'you' };
 }
 
-function slotEmoji(state, myIndex, picked, wantMine) {
-  if (picked) return '✅';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const QUESTION_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 9a3.5 3.5 0 1 1 5.4 2.9c-1.2.8-1.9 1.4-1.9 2.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg>';
+
+function slotIcon(state, myIndex, picked, wantMine) {
+  if (picked) return CHECK_ICON;
   if (state.lastRound) {
     const mine = myIndex === 0 ? state.lastRound.p1 : state.lastRound.p2;
     const theirs = myIndex === 0 ? state.lastRound.p2 : state.lastRound.p1;
-    return EMOJI[wantMine ? mine : theirs];
+    return CHOICE_ICON[wantMine ? mine : theirs];
   }
-  return '❔';
+  return QUESTION_ICON;
 }
 
 function renderBoard(boardEl, ctx) {
@@ -38,7 +42,7 @@ function renderBoard(boardEl, ctx) {
 
   const mySlot = document.createElement('div');
   mySlot.className = 'rps-slot';
-  mySlot.textContent = slotEmoji(state, myIndex, state.picks[myIndex] !== null, true);
+  mySlot.innerHTML = slotIcon(state, myIndex, state.picks[myIndex] !== null, true);
 
   const vs = document.createElement('div');
   vs.className = 'rps-vs';
@@ -46,7 +50,7 @@ function renderBoard(boardEl, ctx) {
 
   const oppSlot = document.createElement('div');
   oppSlot.className = 'rps-slot';
-  oppSlot.textContent = slotEmoji(state, myIndex, state.opponentLockedIn, false);
+  oppSlot.innerHTML = slotIcon(state, myIndex, state.opponentLockedIn, false);
 
   arena.append(mySlot, vs, oppSlot);
   wrap.appendChild(arena);
@@ -57,7 +61,7 @@ function renderBoard(boardEl, ctx) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'rps-choice';
-    btn.textContent = EMOJI[choice];
+    btn.innerHTML = CHOICE_ICON[choice];
     btn.setAttribute('aria-label', choice);
     if (state.picks[myIndex] === choice) btn.dataset.picked = '1';
     btn.disabled = !canPick;

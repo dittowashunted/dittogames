@@ -11,7 +11,7 @@ export const POLLS = [
   {
     id: 'best-video-game',
     title: 'Best Video Game of All Time',
-    tagline: 'Arcade classics to this year’s biggest release — pick the GOAT.',
+    tagline: 'Arcade classics to this year’s biggest release — 600+ games, pick the GOAT.',
     emoji: '🎮',
     theme: 'poll-card--arcade',
     status: 'live',
@@ -20,7 +20,7 @@ export const POLLS = [
   {
     id: 'greatest-movie',
     title: 'Greatest Movie of All Time',
-    tagline: 'A century of film, one favorite. Pick the one you’d defend.',
+    tagline: 'A century of film, 500+ movies, one favorite. Pick the one you’d defend.',
     emoji: '🎬',
     theme: 'poll-card--reel',
     status: 'live',

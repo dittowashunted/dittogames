@@ -1,4 +1,5 @@
 import { getBest, setBestIfHigher } from '../storage.js';
+import { iconFor } from '../icons.js';
 
 const GRID = 20;
 const CELL = 20;
@@ -20,7 +21,7 @@ function arrowSvg(rotation) {
 export function mount(container) {
   container.innerHTML = `
     <div class="game-page">
-      <h1 class="game-page__title">🐍 Snake</h1>
+      <h1 class="game-page__title"><span class="game-page__title-icon">${iconFor('snake')}</span>Snake</h1>
       <div class="arcade-stage">
         <div class="arcade-hud">
           <div class="arcade-hud__item"><span class="arcade-hud__label">Score</span><span class="arcade-hud__value" id="snake-score">0</span></div>
@@ -64,10 +65,31 @@ export function mount(container) {
     const s = getComputedStyle(document.documentElement);
     return {
       bg: s.getPropertyValue('--color-surface-2').trim(),
+      bgAlt: s.getPropertyValue('--color-bg-alt').trim(),
       food: s.getPropertyValue('--color-danger').trim(),
       head: s.getPropertyValue('--color-primary').trim(),
       body: s.getPropertyValue('--color-secondary').trim(),
     };
+  }
+
+  function shade(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const clamp = (v) => Math.max(0, Math.min(255, v));
+    const amt = Math.round(2.55 * percent);
+    const r = clamp((num >> 16) + amt);
+    const g = clamp(((num >> 8) & 0xff) + amt);
+    const b = clamp((num & 0xff) + amt);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx2d.beginPath();
+    ctx2d.moveTo(x + r, y);
+    ctx2d.arcTo(x + w, y, x + w, y + h, r);
+    ctx2d.arcTo(x + w, y + h, x, y + h, r);
+    ctx2d.arcTo(x, y + h, x, y, r);
+    ctx2d.arcTo(x, y, x + w, y, r);
+    ctx2d.closePath();
   }
 
   function placeFood() {
@@ -92,14 +114,71 @@ export function mount(container) {
 
   function draw() {
     const c = colors();
-    ctx2d.fillStyle = c.bg;
-    ctx2d.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-    ctx2d.fillStyle = c.food;
-    ctx2d.fillRect(food.x * CELL + 3, food.y * CELL + 3, CELL - 6, CELL - 6);
-    snake.forEach((seg, i) => {
-      ctx2d.fillStyle = i === 0 ? c.head : c.body;
-      ctx2d.fillRect(seg.x * CELL + 1, seg.y * CELL + 1, CELL - 2, CELL - 2);
-    });
+
+    // Checkerboard board so the play field reads as a designed surface, not a flat fill.
+    for (let gy = 0; gy < GRID; gy++) {
+      for (let gx = 0; gx < GRID; gx++) {
+        ctx2d.fillStyle = (gx + gy) % 2 === 0 ? c.bg : c.bgAlt;
+        ctx2d.fillRect(gx * CELL, gy * CELL, CELL, CELL);
+      }
+    }
+
+    // Food: glossy gradient orb with a soft glow instead of a flat square.
+    const fx = food.x * CELL + CELL / 2;
+    const fy = food.y * CELL + CELL / 2;
+    const fr = CELL / 2 - 2.5;
+    ctx2d.save();
+    ctx2d.shadowColor = c.food;
+    ctx2d.shadowBlur = 10;
+    const grad = ctx2d.createRadialGradient(fx - fr * 0.35, fy - fr * 0.35, fr * 0.15, fx, fy, fr);
+    grad.addColorStop(0, shade(c.food, 30));
+    grad.addColorStop(1, c.food);
+    ctx2d.fillStyle = grad;
+    ctx2d.beginPath();
+    ctx2d.arc(fx, fy, fr, 0, Math.PI * 2);
+    ctx2d.fill();
+    ctx2d.restore();
+
+    // Snake: rounded, tapered, shaded segments drawn tail-first so the head sits on top.
+    const last = snake.length - 1;
+    for (let i = last; i >= 0; i--) {
+      const seg = snake[i];
+      const isHead = i === 0;
+      const t = last > 0 ? i / last : 0;
+      const inset = isHead ? 1 : 1 + t * 1.5;
+      const x = seg.x * CELL + inset;
+      const y = seg.y * CELL + inset;
+      const w = CELL - inset * 2;
+      const h = CELL - inset * 2;
+      const scaleTone = i % 2 === 0 ? 4 : -4;
+      ctx2d.fillStyle = isHead ? c.head : shade(c.body, scaleTone - t * 16);
+      roundRect(x, y, w, h, isHead ? 7 : 5);
+      ctx2d.fill();
+      if (isHead) {
+        ctx2d.fillStyle = 'rgba(255,255,255,0.18)';
+        roundRect(x + 1.5, y + 1.5, w - 3, h * 0.42, 4);
+        ctx2d.fill();
+
+        const ex = dir.x !== 0 ? dir.x * (CELL * 0.16) : CELL * 0.16;
+        const ey = dir.y !== 0 ? dir.y * (CELL * 0.16) : -CELL * 0.05;
+        const perpX = dir.y !== 0 ? CELL * 0.16 : 0;
+        const perpY = dir.x !== 0 ? CELL * 0.16 : 0;
+        const cx = seg.x * CELL + CELL / 2;
+        const cy = seg.y * CELL + CELL / 2;
+        [[1, 1], [-1, -1]].forEach(([s1]) => {
+          const eyeX = cx + ex + perpX * s1;
+          const eyeY = cy + ey + perpY * s1;
+          ctx2d.fillStyle = '#faf5ea';
+          ctx2d.beginPath();
+          ctx2d.arc(eyeX, eyeY, CELL * 0.11, 0, Math.PI * 2);
+          ctx2d.fill();
+          ctx2d.fillStyle = '#241d10';
+          ctx2d.beginPath();
+          ctx2d.arc(eyeX + dir.x * 1.2, eyeY + dir.y * 1.2, CELL * 0.055, 0, Math.PI * 2);
+          ctx2d.fill();
+        });
+      }
+    }
   }
 
   function scheduleTick() {

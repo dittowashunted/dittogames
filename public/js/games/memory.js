@@ -1,7 +1,11 @@
 import { loadValue, saveValue } from '../storage.js';
 import { showToast } from '../toast.js';
+import { iconFor } from '../icons.js';
 
-const SYMBOLS = ['🍎', '🍋', '🍇', '🍓', '🍒', '🍉', '🍌', '🥝', '🍍', '🥥', '🍑', '🍐'];
+const SYMBOLS = [
+  'sym-star', 'sym-heart', 'sym-bolt', 'sym-moon', 'sym-sun', 'sym-leaf',
+  'sym-diamond', 'sym-cloud', 'sym-anchor', 'sym-camera', 'favorite-album', 'best-video-game',
+];
 
 const DIFFICULTIES = {
   easy: { label: 'Easy', cols: 4, pairs: 6 },
@@ -31,7 +35,7 @@ function shuffle(arr) {
 export function mount(container) {
   container.innerHTML = `
     <div class="game-page">
-      <h1 class="game-page__title">🧠 Memory Match</h1>
+      <h1 class="game-page__title"><span class="game-page__title-icon">${iconFor('memory-match')}</span>Memory Match</h1>
       <div class="diff-picker" id="mm-diff"></div>
       <div class="memory-toolbar">
         <div class="arcade-hud__item"><span class="arcade-hud__label">Moves</span><span class="arcade-hud__value" id="mm-moves">0</span></div>
@@ -107,8 +111,8 @@ export function mount(container) {
       const el = document.createElement('div');
       el.className = 'memory-card' + (card.flipped || card.matched ? (card.matched ? ' matched' : ' flipped') : '');
       el.innerHTML = `
-        <div class="memory-card__face memory-card__face--back">❓</div>
-        <div class="memory-card__face memory-card__face--front">${card.symbol}</div>
+        <div class="memory-card__face memory-card__face--back"><span class="memory-card__mark">?</span></div>
+        <div class="memory-card__face memory-card__face--front">${iconFor(card.symbol)}</div>
       `;
       el.addEventListener('click', () => flipCard(card.id));
       gridEl.appendChild(el);

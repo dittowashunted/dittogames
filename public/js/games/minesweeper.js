@@ -1,5 +1,6 @@
 import { loadValue, saveValue } from '../storage.js';
 import { showToast } from '../toast.js';
+import { iconFor } from '../icons.js';
 
 const DIFFS = {
   easy: { label: 'Easy', rows: 9, cols: 9, mines: 10 },
@@ -70,9 +71,9 @@ function revealCell(board, rows, cols, startR, startC) {
 }
 
 function cellContent(cell) {
-  if (cell.state === 'flagged') return '🚩';
+  if (cell.state === 'flagged') return iconFor('flag');
   if (cell.state === 'hidden') return '';
-  if (cell.mine) return '💣';
+  if (cell.mine) return iconFor('mine');
   return cell.adjacent > 0 ? String(cell.adjacent) : '';
 }
 
@@ -102,7 +103,7 @@ function addLongPress(el, onLongPress) {
 export function mount(container) {
   container.innerHTML = `
     <div class="game-page game-page--wide">
-      <h1 class="game-page__title">💣 Minesweeper</h1>
+      <h1 class="game-page__title"><span class="game-page__title-icon">${iconFor('minesweeper')}</span>Minesweeper</h1>
       <div class="diff-picker" id="ms-diff"></div>
       <div class="ms-toolbar">
         <div class="ms-counter" id="ms-mines">10</div>
@@ -157,7 +158,7 @@ export function mount(container) {
     if (cell.state === 'revealed' && !cell.mine && cell.adjacent > 0) btn.dataset.n = String(cell.adjacent);
     else delete btn.dataset.n;
     btn.style.outline = cell.exploded ? '2px solid #fff' : '';
-    btn.textContent = cellContent(cell);
+    btn.innerHTML = cellContent(cell);
   }
 
   function updateAllVisuals() {

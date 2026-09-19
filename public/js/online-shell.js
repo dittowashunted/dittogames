@@ -2,6 +2,7 @@ import { RoomClient } from './room-client.js';
 import { escapeHtml } from './util.js';
 import { showToast } from './toast.js';
 import { getDisplayName, setDisplayName } from './profile.js';
+import { iconFor } from './icons.js';
 
 function outcomeHeadline(room, myIndex) {
   if (room.winner === 'draw') return { emoji: '🤝', text: "It's a draw!" };
@@ -47,6 +48,9 @@ export function mountOnlineGame(container, opts) {
   } = opts;
 
   const client = new RoomClient(gameId);
+  const titleIcon = iconFor(gameId)
+    ? `<span class="game-page__title-icon">${iconFor(gameId)}</span>`
+    : `${icon} `;
   let destroyed = false;
   let phase = 'loading'; // loading | lobby | waiting | play
   let lastError = '';
@@ -65,7 +69,7 @@ export function mountOnlineGame(container, opts) {
   function renderLobby() {
     const name = escapeHtml(getDisplayName());
     container.innerHTML = `
-      <h1 class="game-page__title">${icon} ${escapeHtml(gameName)}</h1>
+      <h1 class="game-page__title">${titleIcon}${escapeHtml(gameName)}</h1>
       <div class="lobby">
         <p class="text-dim">${lobbyBlurb}</p>
         <div class="lobby__name">
@@ -102,7 +106,7 @@ export function mountOnlineGame(container, opts) {
   function renderWaiting() {
     const room = client.room;
     container.innerHTML = `
-      <h1 class="game-page__title">${icon} ${escapeHtml(gameName)}</h1>
+      <h1 class="game-page__title">${titleIcon}${escapeHtml(gameName)}</h1>
       <div class="lobby">
         <p>Send this code to a friend:</p>
         <div class="room-code-box">
@@ -138,7 +142,7 @@ export function mountOnlineGame(container, opts) {
     const rematchLabel = iVoted ? 'Waiting for opponent…' : theyVoted ? 'Friend wants a rematch — Accept' : 'Rematch';
 
     container.innerHTML = `
-      <h1 class="game-page__title">${icon} ${escapeHtml(gameName)}</h1>
+      <h1 class="game-page__title">${titleIcon}${escapeHtml(gameName)}</h1>
       <div class="scoreboard">
         ${playerPill(room, 0, myIndex)}
         <span class="scoreboard__vs">vs</span>

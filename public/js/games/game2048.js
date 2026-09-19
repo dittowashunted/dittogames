@@ -1,4 +1,5 @@
 import { getBest, setBestIfHigher } from '../storage.js';
+import { iconFor } from '../icons.js';
 
 const SIZE = 4;
 const PAD = 10;
@@ -92,7 +93,7 @@ function canMove(board) {
 export function mount(container) {
   container.innerHTML = `
     <div class="game-page">
-      <h1 class="game-page__title">🧩 2048</h1>
+      <h1 class="game-page__title"><span class="game-page__title-icon">${iconFor('2048')}</span>2048</h1>
       <div class="arcade-stage">
         <div class="arcade-hud">
           <div class="arcade-hud__item"><span class="arcade-hud__label">Score</span><span class="arcade-hud__value" id="g-score">0</span></div>
@@ -159,6 +160,8 @@ export function mount(container) {
         const { bg, color } = tileStyle(value);
         tile.style.background = bg;
         tile.style.color = color;
+        tile.style.setProperty('--tile-glow', bg);
+        if (value >= 128) tile.dataset.glow = '1';
         tile.style.fontSize = value >= 1000 ? '1.3rem' : value >= 100 ? '1.5rem' : '1.8rem';
         tile.textContent = String(value);
         positionEl(tile, r, c);
