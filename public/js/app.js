@@ -1,5 +1,6 @@
 import { GAMES } from './games/registry.js';
 import { POLLS } from './polls/registry.js';
+import { iconFor } from './icons.js';
 
 const view = document.getElementById('view');
 let activeCleanup = null;
@@ -25,14 +26,17 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
   applyTheme(next);
 });
 
+// Two overlapping dice: "games" (a die) made into a pair — the visual pun on
+// "Ditto" (a duplicate, a copy of the same thing).
 const LOGO_MARK_SVG = `
   <svg viewBox="0 0 64 64" aria-hidden="true">
-    <rect width="64" height="64" rx="16" fill="currentColor"/>
-    <circle cx="22" cy="24" r="5.5" fill="#faf5ea"/>
-    <circle cx="42" cy="24" r="5.5" fill="#faf5ea"/>
-    <circle cx="22" cy="42" r="5.5" fill="#faf5ea"/>
-    <circle cx="42" cy="42" r="5.5" fill="#faf5ea"/>
-    <circle cx="32" cy="33" r="5.5" fill="#faf5ea"/>
+    <rect x="20" y="20" width="38" height="38" rx="11" fill="var(--color-secondary)"/>
+    <rect x="6" y="6" width="38" height="38" rx="11" fill="var(--color-primary)"/>
+    <circle cx="16" cy="16" r="4" fill="#faf5ea"/>
+    <circle cx="34" cy="16" r="4" fill="#faf5ea"/>
+    <circle cx="16" cy="34" r="4" fill="#faf5ea"/>
+    <circle cx="34" cy="34" r="4" fill="#faf5ea"/>
+    <circle cx="25" cy="25" r="4" fill="#faf5ea"/>
   </svg>`;
 
 function wordmark() {
@@ -48,7 +52,7 @@ function gameCard(game, index) {
   return `
     <a class="game-card ${tile}" href="#/games/${game.id}">
       ${cardArt(game.id)}
-      <div class="game-card__icon">${game.icon}</div>
+      <div class="game-card__icon">${iconFor(game.id)}</div>
       <h3 class="game-card__title">${game.name}</h3>
       <p class="game-card__desc">${game.desc}</p>
     </a>`;
@@ -58,7 +62,7 @@ function hubCard({ id, title, tagline, emoji, theme, href }) {
   return `
     <a class="poll-card ${theme}" href="${href}">
       ${cardArt(id)}
-      <span class="poll-card__emoji">${emoji}</span>
+      <span class="poll-card__emoji">${iconFor(id) || emoji}</span>
       <h3 class="poll-card__title">${title}</h3>
       <p class="poll-card__tagline">${tagline}</p>
     </a>`;
@@ -108,7 +112,7 @@ function pollCard(poll) {
   return `
     <a class="poll-card ${poll.theme}" href="#/polls/${poll.id}">
       ${cardArt(poll.id)}
-      <span class="poll-card__emoji">${poll.emoji}</span>
+      <span class="poll-card__emoji">${iconFor(poll.id)}</span>
       <h3 class="poll-card__title">${poll.title}</h3>
       <p class="poll-card__tagline">${poll.tagline}</p>
     </a>`;

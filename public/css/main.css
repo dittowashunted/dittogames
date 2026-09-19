@@ -11,8 +11,7 @@ h1, h2, h3, h4, p { margin: 0; }
 /* ---------- Theme tokens (light default) ---------- */
 :root {
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-display: "Fredoka", var(--font-body);
-  --font-script: "Pacifico", cursive;
+  --font-display: "Bricolage Grotesque", var(--font-body);
 
   --color-bg: #faf5ea;
   --color-bg-alt: #f3ead8;
@@ -155,8 +154,8 @@ body {
 .brand-lockup__icon { width: 0.72em; height: 0.72em; flex: none; color: var(--color-primary); align-self: center; }
 .brand-lockup__icon svg { width: 100%; height: 100%; display: block; }
 .brand-lockup__name {
-  font-family: var(--font-script); font-weight: 400;
-  font-size: 1em; line-height: 1;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 1em; line-height: 1; letter-spacing: -0.02em;
   padding-bottom: 0.12em;
 }
 
@@ -172,6 +171,34 @@ body {
 .tile--6 { background: #efe2c8; border-color: #ddc48c; }
 .tile--7 { background: #d7f0ec; border-color: #a3ddd2; }
 .tile--8 { background: #fbe0cf; border-color: #f0b98e; }
+
+/* Subtle per-tile texture so the placeholder cards (before custom art lands)
+   read as designed patterns rather than flat AI-gradient rectangles. Sits at
+   z-index 0, under card-art, so a real photo painted over it hides it. */
+.tile--1::before, .tile--4::before, .tile--7::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image: radial-gradient(currentColor 1.6px, transparent 1.6px);
+  background-size: 20px 20px;
+}
+.tile--1::before { color: #e8d3a0; opacity: 0.45; }
+.tile--4::before { color: #edb8c4; opacity: 0.45; }
+.tile--7::before { color: #a3ddd2; opacity: 0.45; }
+
+.tile--2::before, .tile--5::before, .tile--8::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(45deg, currentColor 0 2px, transparent 2px 15px);
+}
+.tile--2::before { color: #a9d4b8; opacity: 0.4; }
+.tile--5::before { color: #cdb3e6; opacity: 0.4; }
+.tile--8::before { color: #f0b98e; opacity: 0.4; }
+
+.tile--3::before, .tile--6::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image: linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.tile--3::before { color: #a9cdec; opacity: 0.45; }
+.tile--6::before { color: #ddc48c; opacity: 0.45; }
 
 /* ---------- Game grid / cards ---------- */
 .game-grid, .poll-grid {
@@ -210,9 +237,13 @@ body {
   position: relative; z-index: 2;
 }
 .game-card__icon, .poll-card__emoji {
-  position: absolute; top: 18px; right: 20px; font-size: 2.3rem; line-height: 1;
-  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.35));
+  position: absolute; top: 16px; right: 18px;
+  width: 2.5rem; height: 2.5rem; line-height: 1; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.16); border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
+.game-card__icon svg, .poll-card__emoji svg { width: 1.4rem; height: 1.4rem; display: block; }
 .game-card__title, .poll-card__title { font-family: var(--font-display); font-weight: 700; font-size: 1.14rem; max-width: 78%; color: #fff; }
 .game-card__desc, .poll-card__tagline { font-size: 0.86rem; line-height: 1.42; max-width: 90%; color: rgba(255, 255, 255, 0.85); }
 
