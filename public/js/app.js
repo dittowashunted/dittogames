@@ -35,8 +35,8 @@ const LOGO_MARK_SVG = `
     <circle cx="32" cy="33" r="5.5" fill="#faf5ea"/>
   </svg>`;
 
-function wordmark(word1, word2) {
-  return `<h1 class="hero__wordmark"><a href="#/">${word1}<span class="hero__dot">${LOGO_MARK_SVG}</span><span class="hero__accent">${word2}</span></a></h1>`;
+function wordmark() {
+  return `<h1 class="brand-lockup"><a href="#/"><span class="brand-lockup__icon">${LOGO_MARK_SVG}</span><span class="brand-lockup__name">DittoGames</span></a></h1>`;
 }
 
 function cardArt(id) {
@@ -67,8 +67,7 @@ function hubCard({ id, title, tagline, emoji, theme, href }) {
 function renderMainHub(container) {
   container.innerHTML = `
     <section class="hero">
-      ${wordmark('DITTO', 'GAMES')}
-      <p>Browser games and quick polls. No sign-up, no ads.</p>
+      ${wordmark()}
     </section>
     <div class="hub-grid">
       ${hubCard({
@@ -96,8 +95,7 @@ function renderGamesHome(container) {
   const solo = GAMES.filter((g) => g.mode === 'solo');
   container.innerHTML = `
     <section class="hero">
-      ${wordmark('DITTO', 'GAMES')}
-      <p>Ten browser games. No sign-up, no ads, no accounts. Just play.</p>
+      ${wordmark()}
     </section>
     <h2 class="section-title">Play with a friend</h2>
     <div class="game-grid">${online.map(gameCard).join('')}</div>
@@ -119,8 +117,7 @@ function pollCard(poll) {
 function renderPollsHome(container) {
   container.innerHTML = `
     <section class="hero poll-hero">
-      ${wordmark('DITTO', 'POLLS')}
-      <p>Pick from a real list. See what everyone else picked.</p>
+      ${wordmark()}
     </section>
     <div class="poll-grid">${POLLS.map(pollCard).join('')}</div>
   `;
