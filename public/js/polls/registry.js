@@ -2,7 +2,7 @@ export const POLLS = [
   {
     id: 'favorite-album',
     title: 'Favorite Album of All Time',
-    tagline: 'Pick your desert-island record from 200+ classics.',
+    tagline: 'Pick your desert-island record from 1,100+ classics.',
     emoji: '🎧',
     theme: 'poll-card--vinyl',
     status: 'live',

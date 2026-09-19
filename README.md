@@ -26,7 +26,7 @@ All ten work on desktop (mouse + keyboard) and mobile (touch, swipe, on-screen c
 
 A separate `#/polls` section, one question at a time, styled as a grid of colorful cards. Voters pick from a fixed, curated list instead of typing free text, so results stay clean and comparable:
 
-- **Favorite Album of All Time** — 200+ well-known albums (`netlify/functions/lib/polls/albums.js`)
+- **Favorite Album of All Time** — 1,100+ albums across every genre (`netlify/functions/lib/polls/albums.js`)
 - **Best Video Game of All Time** — 120+ acclaimed games across eras and platforms (`netlify/functions/lib/polls/videogames.js`)
 - **Greatest Movie of All Time** — 125+ acclaimed films (`netlify/functions/lib/polls/movies.js`)
 

@@ -4,6 +4,15 @@ import { fetchPollOptions, fetchPollResults, submitVote } from './poll-client.js
 import { getVoterId, getMyVote, setMyVote } from './voter.js';
 
 const RESULTS_LIMIT = 20;
+const OPTION_RENDER_LIMIT = 120;
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
 
 function formatPct(count, total) {
   if (!total) return '0%';
@@ -122,17 +131,23 @@ export function mount(container, meta) {
     const query = search.trim().toLowerCase();
     const matches = poll.options.filter((o) => matchesSearch(o, query));
     const itemPlural = pluralize(poll.itemLabel);
+    const shown = matches.slice(0, OPTION_RENDER_LIMIT);
 
-    els.shownHint.textContent = query
-      ? `Showing ${matches.length} of ${poll.options.length} ${itemPlural}`
-      : `Tap a ${poll.itemLabel} to vote — ${poll.options.length} total`;
+    if (query) {
+      els.shownHint.textContent =
+        matches.length > OPTION_RENDER_LIMIT
+          ? `Showing first ${OPTION_RENDER_LIMIT} of ${matches.length} matches — keep typing to narrow it down`
+          : `Showing ${matches.length} of ${poll.options.length} ${itemPlural}`;
+    } else {
+      els.shownHint.textContent = `Showing ${shown.length} random ${itemPlural} of ${poll.options.length} — search to find yours`;
+    }
 
     if (!matches.length) {
       els.optionGrid.innerHTML = `<p class="option-empty">No ${escapeHtml(itemPlural)} match your search.</p>`;
       return;
     }
 
-    els.optionGrid.innerHTML = matches
+    els.optionGrid.innerHTML = shown
       .map((o) => {
         const selected = stats.yourVote === o.id;
         return `
@@ -251,6 +266,7 @@ export function mount(container, meta) {
         throw new Error('poll-results returned an unexpected response');
       }
       poll = options;
+      shuffle(poll.options);
       poll.options.forEach((o) => optionsById.set(o.id, o));
       stats = results;
       if (results.yourVote) setMyVote(pollId, results.yourVote);
