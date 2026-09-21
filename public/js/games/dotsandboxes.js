@@ -5,10 +5,10 @@ function renderBoard(boardEl, ctx) {
   const canPlay = room.status === 'active' && isMyTurn;
   const { rows, cols, hLines, vLines, boxes, scores } = state;
 
-  const available = Math.min(360, (boardEl.clientWidth || 360) - 4);
-  const cellSize = Math.max(50, Math.floor(available / (cols - 1)));
-  const pad = 14;
-  const hit = 20;
+  const available = Math.min(520, (boardEl.clientWidth || 480) - 8);
+  const cellSize = Math.max(58, Math.floor(available / (cols - 1)));
+  const pad = 18;
+  const hit = 26;
   const width = (cols - 1) * cellSize + pad * 2;
   const height = (rows - 1) * cellSize + pad * 2;
 

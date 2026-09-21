@@ -2,7 +2,7 @@ import { getBest, setBestIfHigher } from '../storage.js';
 import { iconFor } from '../icons.js';
 
 const GRID = 20;
-const CELL = 20;
+const CELL = 26;
 const CANVAS_SIZE = GRID * CELL;
 const BASE_TICK_MS = 140;
 const MIN_TICK_MS = 75;

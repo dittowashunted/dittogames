@@ -1,4 +1,4 @@
-import { loadValue, saveValue } from '../storage.js';
+import { loadValue, saveValue, setBestTimeIfLower } from '../storage.js';
 import { showToast } from '../toast.js';
 import { iconFor } from '../icons.js';
 
@@ -8,8 +8,12 @@ const DIFFS = {
   hard: { label: 'Hard', rows: 16, cols: 30, mines: 99 },
 };
 
-function bestKey(diff) {
-  return `minesweeper:best:${diff}`;
+// Big cells when the board is small enough to afford them, shrinking (and
+// eventually scrolling) for the 30-column expert board.
+function cellSizeFor(cols) {
+  const available = Math.min(window.innerWidth - 80, 1120);
+  const ideal = Math.floor((available - (cols - 1) * 4) / cols);
+  return Math.max(24, Math.min(40, ideal));
 }
 
 function buildEmptyBoard(rows, cols) {
@@ -166,7 +170,8 @@ export function mount(container) {
   }
 
   function buildGrid() {
-    gridEl.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+    gridEl.style.setProperty('--ms-cell-size', `${cellSizeFor(cols)}px`);
+    gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--ms-cell-size))`;
     gridEl.innerHTML = '';
     cellEls = [];
     for (let r = 0; r < rows; r++) {
@@ -253,10 +258,7 @@ export function mount(container) {
     }
     minesEl.textContent = '0';
     updateAllVisuals();
-    const key = bestKey(difficulty);
-    const current = loadValue(key, null);
-    const isBest = current === null || seconds < current;
-    if (isBest) saveValue(key, seconds);
+    const isBest = setBestTimeIfLower('minesweeper', difficulty, seconds);
     showToast(`Cleared in ${seconds}s!${isBest ? ' New best time! 🎉' : ''}`, 4000);
   }
 
@@ -286,7 +288,13 @@ export function mount(container) {
 
   newGame();
 
+  function onResize() {
+    if (cols) gridEl.style.setProperty('--ms-cell-size', `${cellSizeFor(cols)}px`);
+  }
+  window.addEventListener('resize', onResize);
+
   return function cleanup() {
     stopTimer();
+    window.removeEventListener('resize', onResize);
   };
 }

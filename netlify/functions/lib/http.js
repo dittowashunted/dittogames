@@ -22,4 +22,13 @@ function parseBody(event) {
   }
 }
 
-module.exports = { json, badRequest, forbidden, notFound, conflict, gone, serverError, parseBody };
+// Keeps a genuinely broken deploy diagnosable from the browser instead of
+// collapsing every failure into an identical "Something went wrong".
+function failure(err) {
+  if (err && err.name === 'MissingBlobsEnvironmentError') {
+    return json(503, { error: 'Account storage is not available on this deploy.' });
+  }
+  return serverError();
+}
+
+module.exports = { json, badRequest, forbidden, notFound, conflict, gone, serverError, failure, parseBody };

@@ -1,8 +1,8 @@
 import { getBest, setBestIfHigher } from '../storage.js';
 import { iconFor } from '../icons.js';
 
-const CANVAS_W = 360;
-const CANVAS_H = 480;
+const CANVAS_W = 430;
+const CANVAS_H = 560;
 const ROWS = 6;
 const COLS = 8;
 const BRICK_COLORS = ['#f94144', '#f3722c', '#f9c74f', '#90be6d', '#43aa8b', '#577590'];
@@ -28,15 +28,15 @@ function roundRectPath(ctx, x, y, w, h, r) {
 }
 const SIDE_MARGIN = 8;
 const BRICK_GAP = 4;
-const BRICK_H = 16;
-const TOP_OFFSET = 36;
+const BRICK_H = 19;
+const TOP_OFFSET = 44;
 const BRICK_W = (CANVAS_W - SIDE_MARGIN * 2 - BRICK_GAP * (COLS - 1)) / COLS;
-const PADDLE_W = 70;
-const PADDLE_H = 12;
+const PADDLE_W = 88;
+const PADDLE_H = 14;
 const PADDLE_Y = CANVAS_H - 30;
-const BALL_R = 7;
-const BASE_BALL_SPEED = 230;
-const PADDLE_KEY_SPEED = 360;
+const BALL_R = 8;
+const BASE_BALL_SPEED = 255;
+const PADDLE_KEY_SPEED = 400;
 
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));

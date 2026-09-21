@@ -1,4 +1,4 @@
-import { loadValue, saveValue } from '../storage.js';
+import { loadValue, saveValue, getBestTime, setBestTimeIfLower } from '../storage.js';
 import { showToast } from '../toast.js';
 import { iconFor } from '../icons.js';
 
@@ -12,10 +12,6 @@ const DIFFICULTIES = {
   medium: { label: 'Medium', cols: 4, pairs: 8 },
   hard: { label: 'Hard', cols: 6, pairs: 12 },
 };
-
-function bestKey(diff) {
-  return `memory-match:best:${diff}`;
-}
 
 function formatTime(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
@@ -70,7 +66,7 @@ export function mount(container) {
     .join('');
 
   function updateBestDisplay() {
-    const best = loadValue(bestKey(difficulty), null);
+    const best = getBestTime('memory-match', difficulty);
     bestEl.textContent = best === null ? '—' : formatTime(best);
   }
 
@@ -148,14 +144,7 @@ export function mount(container) {
           renderCards();
           if (matchedCount === DIFFICULTIES[difficulty].pairs) {
             stopTimer();
-            const isBest = (() => {
-              const current = loadValue(bestKey(difficulty), null);
-              if (current === null || seconds < current) {
-                saveValue(bestKey(difficulty), seconds);
-                return true;
-              }
-              return false;
-            })();
+            const isBest = setBestTimeIfLower('memory-match', difficulty, seconds);
             updateBestDisplay();
             showToast(`Solved in ${moves} moves, ${formatTime(seconds)}!${isBest ? ' New best time! 🎉' : ''}`, 4000);
           }

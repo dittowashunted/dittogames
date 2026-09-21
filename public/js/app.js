@@ -1,6 +1,7 @@
 import { GAMES } from './games/registry.js';
 import { POLLS } from './polls/registry.js';
 import { iconFor } from './icons.js';
+import { initAccountUI } from './account.js';
 
 const view = document.getElementById('view');
 let activeCleanup = null;
@@ -247,4 +248,5 @@ async function router() {
 }
 
 window.addEventListener('hashchange', router);
+initAccountUI();
 router();

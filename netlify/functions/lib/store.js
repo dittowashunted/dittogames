@@ -19,4 +19,16 @@ async function deleteRoom(code) {
   await store.delete(code);
 }
 
-module.exports = { roomsStore, getRoom, putRoom, deleteRoom };
+function usersStore() {
+  return getStore('users');
+}
+
+async function getUser(username) {
+  return usersStore().get(username, { type: 'json' });
+}
+
+async function putUser(user) {
+  await usersStore().set(user.username, JSON.stringify(user));
+}
+
+module.exports = { roomsStore, getRoom, putRoom, deleteRoom, usersStore, getUser, putUser };
