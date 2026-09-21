@@ -9,6 +9,7 @@ export const GAMES = [
   },
   {
     id: 'super-tic-tac-toe',
+    artHasTitle: true,
     name: 'Super Tic Tac Toe',
     icon: '🔳',
     mode: 'online',
@@ -17,6 +18,7 @@ export const GAMES = [
   },
   {
     id: 'tic-tac-toe',
+    artHasTitle: true,
     name: 'Tic Tac Toe',
     icon: '❌',
     mode: 'online',
@@ -25,6 +27,7 @@ export const GAMES = [
   },
   {
     id: 'connect-four',
+    artHasTitle: true,
     name: 'Connect Four',
     icon: '🔴',
     mode: 'online',
@@ -33,6 +36,7 @@ export const GAMES = [
   },
   {
     id: 'rock-paper-scissors',
+    artHasTitle: true,
     name: 'Rock Paper Scissors',
     icon: '✊',
     mode: 'online',

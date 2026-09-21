@@ -45,13 +45,16 @@ function wordmark() {
 }
 
 function cardArt(id) {
-  return `<div class="card-art" style="background-image:url('/img/cards/${id}.jpg')"></div>`;
+  return `<div class="card-art" style="background-image:url('/img/cards/${id}.png')"></div>`;
 }
 
 function gameCard(game, index) {
   const tile = `tile--${(index % 8) + 1}`;
+  // Art that already spells out the game's name gets the same treatment as the
+  // hub cards: no scrim, no overlaid text, title kept for screen readers only.
+  const titled = game.artHasTitle ? ' game-card--art-title' : '';
   return `
-    <a class="game-card ${tile}" href="#/games/${game.id}">
+    <a class="game-card ${tile}${titled}" href="#/games/${game.id}">
       ${cardArt(game.id)}
       <div class="game-card__icon">${iconFor(game.id)}</div>
       <h3 class="game-card__title">${game.name}</h3>

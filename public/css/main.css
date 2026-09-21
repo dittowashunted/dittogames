@@ -688,6 +688,16 @@ body {
   position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap;
 }
 
+/* Game cards whose artwork already spells out the name (registry: artHasTitle)
+   follow the same rules as the hub cards, so the drawn title isn't competing
+   with an HTML one and isn't dimmed by the legibility scrim. */
+.game-card--art-title { background: #fdfaf3; }
+.game-card--art-title::after { content: none; }
+.game-card--art-title .game-card__icon, .game-card--art-title .game-card__desc { display: none; }
+.game-card--art-title .game-card__title {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap;
+}
+
 /* ---------- Polls: poll page ---------- */
 .poll-page { max-width: 880px; margin: 0 auto; }
 .poll-page__head { margin-bottom: 20px; }
@@ -800,7 +810,8 @@ body {
   .game-card, .poll-card { aspect-ratio: 2.2 / 1; padding: 18px; }
   /* These two keep their wider native ratio (matches the source art) so the
      baked-in "GAMES"/"POLLS" text doesn't get cropped on narrow screens. */
-  .hub-grid .poll-card--games-hub, .hub-grid .poll-card--polls-hub { aspect-ratio: 2.68 / 1; }
+  .hub-grid .poll-card--games-hub, .hub-grid .poll-card--polls-hub,
+  .game-card--art-title { aspect-ratio: 2.68 / 1; }
   .poll-your-pick { flex-direction: column; align-items: flex-start; }
   .result-row__stats { text-align: left; }
 }
