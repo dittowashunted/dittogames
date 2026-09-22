@@ -105,9 +105,11 @@ function renderGamesHome(container) {
     <section class="hero">
       ${wordmark()}
     </section>
-    <h2 class="section-title">Play with a friend</h2>
+    <h2 class="section-title">Versus</h2>
+    <p class="section-sub">Online with a code, two of you on one device, or against the computer.</p>
     <div class="game-grid">${online.map(gameCard).join('')}</div>
     <h2 class="section-title">Solo</h2>
+    <p class="section-sub">250 levels each, getting harder the whole way — or skip it and play endless.</p>
     <div class="game-grid">${solo.map(gameCard).join('')}</div>
   `;
 }

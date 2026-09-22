@@ -1,6 +1,7 @@
 import { loadValue, saveValue, setBestTimeIfLower } from '../storage.js';
 import { showToast } from '../toast.js';
 import { iconFor } from '../icons.js';
+import { mountSoloGame } from '../solo-shell.js';
 
 const DIFFS = {
   easy: { label: 'Easy', rows: 9, cols: 9, mines: 10 },
@@ -104,29 +105,26 @@ function addLongPress(el, onLongPress) {
   });
 }
 
-export function mount(container) {
-  container.innerHTML = `
-    <div class="game-page game-page--wide">
-      <h1 class="game-page__title"><span class="game-page__title-icon">${iconFor('minesweeper')}</span>Minesweeper</h1>
-      <div class="diff-picker" id="ms-diff"></div>
-      <div class="ms-toolbar">
-        <div class="ms-counter" id="ms-mines">10</div>
-        <button class="btn btn--secondary btn--sm" type="button" id="ms-new">New Game</button>
-        <div class="ms-counter" id="ms-time">0s</div>
-      </div>
-      <div class="ms-grid-wrap">
-        <div class="ms-grid" id="ms-grid"></div>
-      </div>
-      <div class="instructions">
-        <strong>Controls:</strong> Tap/click to reveal a square. Right-click (desktop) or press-and-hold (mobile) to flag a suspected mine. Clear every safe square to win.
-      </div>
+function startMinesweeper(stageEl, api) {
+  const levelMode = Boolean(api.config);
+
+  stageEl.innerHTML = `
+    ${levelMode ? '' : '<div class="diff-picker" id="ms-diff"></div>'}
+    <div class="ms-toolbar">
+      <div class="ms-counter" id="ms-mines">0</div>
+      <button class="btn btn--secondary btn--sm" type="button" id="ms-new">${levelMode ? 'Restart' : 'New Game'}</button>
+      <div class="ms-counter" id="ms-time">0s</div>
+    </div>
+    <div class="ms-grid-wrap">
+      <div class="ms-grid" id="ms-grid"></div>
     </div>
   `;
 
-  const diffEl = container.querySelector('#ms-diff');
-  const gridEl = container.querySelector('#ms-grid');
-  const minesEl = container.querySelector('#ms-mines');
-  const timeEl = container.querySelector('#ms-time');
+  const diffEl = stageEl.querySelector('#ms-diff');
+  const gridWrapEl = stageEl.querySelector('.ms-grid-wrap');
+  const gridEl = stageEl.querySelector('#ms-grid');
+  const minesEl = stageEl.querySelector('#ms-mines');
+  const timeEl = stageEl.querySelector('#ms-time');
 
   let difficulty = loadValue('minesweeper:difficulty', 'easy');
   let rows, cols, mineCount, board, cellEls;
@@ -136,9 +134,11 @@ export function mount(container) {
   let seconds = 0;
   let timer = null;
 
-  diffEl.innerHTML = Object.entries(DIFFS)
-    .map(([key, d]) => `<button class="diff-btn" type="button" data-diff="${key}" aria-pressed="${key === difficulty}">${d.label}</button>`)
-    .join('');
+  if (diffEl) {
+    diffEl.innerHTML = Object.entries(DIFFS)
+      .map(([key, d]) => `<button class="diff-btn" type="button" data-diff="${key}" aria-pressed="${key === difficulty}">${d.label}</button>`)
+      .join('');
+  }
 
   function stopTimer() {
     clearInterval(timer);
@@ -192,10 +192,13 @@ export function mount(container) {
       }
       cellEls.push(rowEls);
     }
+    // A board too wide for the screen starts scrolled to the middle rather
+    // than pinned to one edge.
+    gridWrapEl.scrollLeft = Math.max(0, (gridWrapEl.scrollWidth - gridWrapEl.clientWidth) / 2);
   }
 
   function newGame() {
-    const conf = DIFFS[difficulty];
+    const conf = levelMode ? api.config : DIFFS[difficulty];
     rows = conf.rows;
     cols = conf.cols;
     mineCount = conf.mines;
@@ -258,8 +261,12 @@ export function mount(container) {
     }
     minesEl.textContent = '0';
     updateAllVisuals();
+    if (levelMode) {
+      api.complete(`Cleared in ${seconds}s.`);
+      return;
+    }
     const isBest = setBestTimeIfLower('minesweeper', difficulty, seconds);
-    showToast(`Cleared in ${seconds}s!${isBest ? ' New best time! 🎉' : ''}`, 4000);
+    showToast(`Cleared in ${seconds}s!${isBest ? ' New best time! \uD83C\uDF89' : ''}`, 4000);
   }
 
   function loseGame(exR, exC) {
@@ -272,29 +279,44 @@ export function mount(container) {
     }
     board[exR][exC].exploded = true;
     updateAllVisuals();
-    showToast('Boom! You hit a mine.', 3000);
+    if (levelMode) api.fail('You hit a mine.');
+    else showToast('Boom! You hit a mine.', 3000);
   }
 
-  diffEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-diff]');
-    if (!btn) return;
-    difficulty = btn.dataset.diff;
-    saveValue('minesweeper:difficulty', difficulty);
-    diffEl.querySelectorAll('.diff-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.diff === difficulty)));
-    newGame();
-  });
+  if (diffEl) {
+    diffEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-diff]');
+      if (!btn) return;
+      difficulty = btn.dataset.diff;
+      saveValue('minesweeper:difficulty', difficulty);
+      diffEl.querySelectorAll('.diff-btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.diff === difficulty)));
+      newGame();
+    });
+  }
 
-  container.querySelector('#ms-new').addEventListener('click', newGame);
-
-  newGame();
+  stageEl.querySelector('#ms-new').addEventListener('click', newGame);
 
   function onResize() {
     if (cols) gridEl.style.setProperty('--ms-cell-size', `${cellSizeFor(cols)}px`);
   }
   window.addEventListener('resize', onResize);
 
+  newGame();
+
   return function cleanup() {
     stopTimer();
     window.removeEventListener('resize', onResize);
   };
+}
+
+export function mount(container, meta) {
+  return mountSoloGame(container, {
+    gameId: 'minesweeper',
+    gameName: 'Minesweeper',
+    icon: (meta && meta.icon) || '\uD83D\uDCA3',
+    endlessLabel: 'Classic',
+    endlessDesc: 'Pick a difficulty and chase your best time.',
+    instructionsHtml: '<strong>Controls:</strong> Tap/click to reveal a square. Right-click (desktop) or press-and-hold (mobile) to flag a suspected mine. Clear every safe square to win.',
+    start: startMinesweeper,
+  });
 }

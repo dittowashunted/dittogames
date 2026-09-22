@@ -1,5 +1,5 @@
 import { getBest, setBestIfHigher } from '../storage.js';
-import { iconFor } from '../icons.js';
+import { mountSoloGame } from '../solo-shell.js';
 
 const SIZE = 4;
 const PAD = 10;
@@ -90,41 +90,47 @@ function canMove(board) {
   return false;
 }
 
-export function mount(container) {
-  container.innerHTML = `
-    <div class="game-page">
-      <h1 class="game-page__title"><span class="game-page__title-icon">${iconFor('2048')}</span>2048</h1>
-      <div class="arcade-stage">
-        <div class="arcade-hud">
-          <div class="arcade-hud__item"><span class="arcade-hud__label">Score</span><span class="arcade-hud__value" id="g-score">0</span></div>
-          <div class="arcade-hud__item"><span class="arcade-hud__label">Best</span><span class="arcade-hud__value" id="g-best">${getBest('2048')}</span></div>
-        </div>
-        <div class="g2048-wrap">
-          <div class="g2048-board" id="g-board"></div>
-          <div class="arcade-overlay hidden" id="g-overlay">
-            <h3 id="g-overlay-title">Game Over</h3>
-            <p class="text-dim" id="g-overlay-msg"></p>
-            <div class="game-over-actions" id="g-overlay-actions"></div>
-          </div>
-        </div>
-        <div class="flex justify-center mt-16">
-          <button class="btn btn--secondary btn--sm" type="button" id="g-new">New Game</button>
-        </div>
-        <p class="touch-hint">Arrow keys / WASD, or swipe on the board.</p>
+function start2048(stageEl, api) {
+  const levelMode = Boolean(api.config);
+  const targetTile = levelMode ? api.config.targetTile : 2048;
+  const moveLimit = levelMode ? api.config.moveLimit : 0;
+
+  stageEl.innerHTML = `
+    <div class="arcade-stage">
+      <div class="arcade-hud">
+        <div class="arcade-hud__item"><span class="arcade-hud__label">Score</span><span class="arcade-hud__value" id="g-score">0</span></div>
+        ${levelMode
+          ? `<div class="arcade-hud__item"><span class="arcade-hud__label">Target</span><span class="arcade-hud__value" id="g-target">${targetTile}</span></div>
+             <div class="arcade-hud__item"><span class="arcade-hud__label">Moves</span><span class="arcade-hud__value" id="g-moves">${moveLimit ? `0/${moveLimit}` : '0'}</span></div>`
+          : `<div class="arcade-hud__item"><span class="arcade-hud__label">Best</span><span class="arcade-hud__value" id="g-best">${getBest('2048')}</span></div>`}
       </div>
+      <div class="g2048-wrap">
+        <div class="g2048-board" id="g-board"></div>
+        <div class="arcade-overlay hidden" id="g-overlay">
+          <h3 id="g-overlay-title">Game Over</h3>
+          <p class="text-dim" id="g-overlay-msg"></p>
+          <div class="game-over-actions" id="g-overlay-actions"></div>
+        </div>
+      </div>
+      <div class="flex justify-center mt-16">
+        <button class="btn btn--secondary btn--sm" type="button" id="g-new">${levelMode ? 'Restart' : 'New Game'}</button>
+      </div>
+      <p class="touch-hint">Arrow keys / WASD, or swipe on the board.</p>
     </div>
   `;
 
-  const boardEl = container.querySelector('#g-board');
-  const scoreEl = container.querySelector('#g-score');
-  const bestEl = container.querySelector('#g-best');
-  const overlay = container.querySelector('#g-overlay');
-  const overlayTitle = container.querySelector('#g-overlay-title');
-  const overlayMsg = container.querySelector('#g-overlay-msg');
-  const overlayActions = container.querySelector('#g-overlay-actions');
+  const boardEl = stageEl.querySelector('#g-board');
+  const scoreEl = stageEl.querySelector('#g-score');
+  const bestEl = stageEl.querySelector('#g-best');
+  const movesEl = stageEl.querySelector('#g-moves');
+  const overlay = stageEl.querySelector('#g-overlay');
+  const overlayTitle = stageEl.querySelector('#g-overlay-title');
+  const overlayMsg = stageEl.querySelector('#g-overlay-msg');
+  const overlayActions = stageEl.querySelector('#g-overlay-actions');
 
   let board = emptyBoard();
   let score = 0;
+  let moves = 0;
   let hasWon = false;
   let locked = false;
   let cellSize = 0;
@@ -185,9 +191,11 @@ export function mount(container) {
   function newGame() {
     board = emptyBoard();
     score = 0;
+    moves = 0;
     hasWon = false;
     locked = false;
     scoreEl.textContent = '0';
+    if (movesEl) movesEl.textContent = moveLimit ? `0/${moveLimit}` : '0';
     spawnTile(board);
     spawnTile(board);
     hideOverlay();
@@ -195,30 +203,56 @@ export function mount(container) {
     render();
   }
 
+  function highestTile() {
+    let best = 0;
+    for (const row of board) for (const v of row) if (v > best) best = v;
+    return best;
+  }
+
   function attemptMove(dir) {
     if (locked) return;
     const result = moveBoard(board, dir);
     if (!result.changed) return;
     board = result.board;
+    moves += 1;
     score += result.scoreGain;
     scoreEl.textContent = String(score);
-    setBestIfHigher('2048', score);
-    bestEl.textContent = String(getBest('2048'));
+    if (movesEl) movesEl.textContent = moveLimit ? `${moves}/${moveLimit}` : String(moves);
+    if (!levelMode) {
+      setBestIfHigher('2048', score);
+      bestEl.textContent = String(getBest('2048'));
+    }
     const spawned = spawnTile(board);
     render(spawned);
 
-    if (!hasWon && board.some((row) => row.includes(2048))) {
-      hasWon = true;
+    if (highestTile() >= targetTile) {
+      if (levelMode) {
+        locked = true;
+        api.complete(`Reached ${highestTile()} in ${moves} ${moves === 1 ? 'move' : 'moves'}.`);
+        return;
+      }
+      if (!hasWon) {
+        hasWon = true;
+        locked = true;
+        showOverlay(
+          '🎉 You reached 2048!',
+          `Score: ${score}`,
+          '<button class="btn btn--primary" type="button" data-action="continue">Keep Going</button><button class="btn btn--secondary" type="button" data-action="restart">New Game</button>'
+        );
+        return;
+      }
+    }
+    if (levelMode && moveLimit && moves >= moveLimit) {
       locked = true;
-      showOverlay(
-        '🎉 You reached 2048!',
-        `Score: ${score}`,
-        '<button class="btn btn--primary" type="button" data-action="continue">Keep Going</button><button class="btn btn--secondary" type="button" data-action="restart">New Game</button>'
-      );
+      api.fail(`Out of moves — your best tile was ${highestTile()}, you needed ${targetTile}.`);
       return;
     }
     if (!canMove(board)) {
       locked = true;
+      if (levelMode) {
+        api.fail(`The board jammed up — your best tile was ${highestTile()}, you needed ${targetTile}.`);
+        return;
+      }
       showOverlay('Game Over', `Final score: ${score}`, '<button class="btn btn--primary" type="button" data-action="restart">Try Again</button>');
     }
   }
@@ -269,14 +303,27 @@ export function mount(container) {
   window.addEventListener('keydown', onKeydown);
   window.addEventListener('resize', onResize);
   overlay.addEventListener('click', onOverlayClick);
-  container.querySelector('#g-new').addEventListener('click', newGame);
+  stageEl.querySelector('#g-new').addEventListener('click', newGame);
   boardEl.addEventListener('touchstart', onTouchStart, { passive: true });
   boardEl.addEventListener('touchend', onTouchEnd, { passive: true });
 
   newGame();
 
   return function cleanup() {
+    locked = true;
     window.removeEventListener('keydown', onKeydown);
     window.removeEventListener('resize', onResize);
   };
+}
+
+export function mount(container, meta) {
+  return mountSoloGame(container, {
+    gameId: '2048',
+    gameName: '2048',
+    icon: (meta && meta.icon) || '2⃣',
+    endlessLabel: 'Classic',
+    endlessDesc: 'The original: reach 2048, then keep going for a high score.',
+    instructionsHtml: '<strong>Controls:</strong> Arrow keys or WASD on desktop, swipe the board on mobile. Matching tiles merge into one worth double.',
+    start: start2048,
+  });
 }

@@ -1,5 +1,6 @@
 import { getBest, setBestIfHigher } from '../storage.js';
 import { iconFor } from '../icons.js';
+import { mountSoloGame } from '../solo-shell.js';
 
 const GRID = 20;
 const CELL = 26;
@@ -18,48 +19,104 @@ function arrowSvg(rotation) {
   return `<svg viewBox="0 0 24 24" style="transform:rotate(${rotation}deg)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`;
 }
 
-export function mount(container) {
-  container.innerHTML = `
-    <div class="game-page">
-      <h1 class="game-page__title"><span class="game-page__title-icon">${iconFor('snake')}</span>Snake</h1>
-      <div class="arcade-stage">
-        <div class="arcade-hud">
-          <div class="arcade-hud__item"><span class="arcade-hud__label">Score</span><span class="arcade-hud__value" id="snake-score">0</span></div>
-          <div class="arcade-hud__item"><span class="arcade-hud__label">Best</span><span class="arcade-hud__value" id="snake-best">${getBest('snake')}</span></div>
-        </div>
-        <div class="arcade-canvas-wrap" id="snake-wrap" style="max-width:${CANVAS_SIZE}px;width:100%;">
-          <canvas id="snake-canvas" width="${CANVAS_SIZE}" height="${CANVAS_SIZE}"></canvas>
-          <div class="arcade-overlay" id="snake-overlay">
-            <h3>Snake</h3>
-            <p class="text-dim">Eat the dots, avoid the walls and yourself.</p>
-            <button class="btn btn--primary btn--lg" type="button" data-action="start">Play</button>
-          </div>
-        </div>
-        <div class="dpad-desktop-hide">
-          <div class="dpad" id="snake-dpad">
-            <button class="dpad-up" type="button" data-dir="up" aria-label="Up">${arrowSvg(0)}</button>
-            <button class="dpad-left" type="button" data-dir="left" aria-label="Left">${arrowSvg(270)}</button>
-            <button class="dpad-right" type="button" data-dir="right" aria-label="Right">${arrowSvg(90)}</button>
-            <button class="dpad-down" type="button" data-dir="down" aria-label="Down">${arrowSvg(180)}</button>
-          </div>
-        </div>
-        <p class="touch-hint">Arrow keys / WASD, swipe on the board, or tap the pad.</p>
+const key = (x, y) => `${x},${y}`;
+
+/**
+ * Scatters `count` walls across the field, keeping a clear lane in front of
+ * the starting snake and checking that every free square is still reachable —
+ * a level walled into two halves would be unwinnable.
+ */
+function generateObstacles(count, startRow) {
+  if (count <= 0) return [];
+  const reserved = new Set();
+  for (let x = 0; x < GRID; x++) reserved.add(key(x, startRow));
+
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const walls = new Set();
+    let guard = 0;
+    while (walls.size < count && guard++ < 2000) {
+      const x = Math.floor(Math.random() * GRID);
+      const y = Math.floor(Math.random() * GRID);
+      if (reserved.has(key(x, y))) continue;
+      walls.add(key(x, y));
+    }
+    if (walls.size < count) continue;
+    if (allFreeCellsReachable(walls)) {
+      return [...walls].map((k) => {
+        const [x, y] = k.split(',').map(Number);
+        return { x, y };
+      });
+    }
+  }
+  // Rather than risk an unbeatable level, fall back to an open field.
+  return [];
+}
+
+function allFreeCellsReachable(walls) {
+  const total = GRID * GRID - walls.size;
+  const start = key(0, Math.floor(GRID / 2));
+  if (walls.has(start)) return false;
+  const seen = new Set([start]);
+  const stack = [[0, Math.floor(GRID / 2)]];
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID) continue;
+      const k = key(nx, ny);
+      if (seen.has(k) || walls.has(k)) continue;
+      seen.add(k);
+      stack.push([nx, ny]);
+    }
+  }
+  return seen.size === total;
+}
+
+function startSnake(stageEl, api) {
+  const levelMode = Boolean(api.config);
+  const target = levelMode ? api.config.targetFood : 0;
+
+  stageEl.innerHTML = `
+    <div class="arcade-stage">
+      <div class="arcade-hud">
+        <div class="arcade-hud__item"><span class="arcade-hud__label">${levelMode ? 'Apples' : 'Score'}</span><span class="arcade-hud__value" id="snake-score">${levelMode ? `0/${target}` : '0'}</span></div>
+        <div class="arcade-hud__item"><span class="arcade-hud__label">Best</span><span class="arcade-hud__value" id="snake-best">${getBest('snake')}</span></div>
       </div>
+      <div class="arcade-canvas-wrap" id="snake-wrap" style="max-width:${CANVAS_SIZE}px;width:100%;">
+        <canvas id="snake-canvas" width="${CANVAS_SIZE}" height="${CANVAS_SIZE}"></canvas>
+        <div class="arcade-overlay" id="snake-overlay">
+          <h3>${levelMode ? `Level ${api.level}` : 'Snake'}</h3>
+          <p class="text-dim">${levelMode ? `Eat ${target} ${target === 1 ? 'apple' : 'apples'} without crashing.` : 'Eat the dots, avoid the walls and yourself.'}</p>
+          <button class="btn btn--primary btn--lg" type="button" data-action="start">Play</button>
+        </div>
+      </div>
+      <div class="dpad-desktop-hide">
+        <div class="dpad" id="snake-dpad">
+          <button class="dpad-up" type="button" data-dir="up" aria-label="Up">${arrowSvg(0)}</button>
+          <button class="dpad-left" type="button" data-dir="left" aria-label="Left">${arrowSvg(270)}</button>
+          <button class="dpad-right" type="button" data-dir="right" aria-label="Right">${arrowSvg(90)}</button>
+          <button class="dpad-down" type="button" data-dir="down" aria-label="Down">${arrowSvg(180)}</button>
+        </div>
+      </div>
+      <p class="touch-hint">Arrow keys / WASD, swipe on the board, or tap the pad.</p>
     </div>
   `;
 
-  const canvas = container.querySelector('#snake-canvas');
+  const canvas = stageEl.querySelector('#snake-canvas');
   const ctx2d = canvas.getContext('2d');
-  const scoreEl = container.querySelector('#snake-score');
-  const bestEl = container.querySelector('#snake-best');
-  const overlay = container.querySelector('#snake-overlay');
+  const scoreEl = stageEl.querySelector('#snake-score');
+  const bestEl = stageEl.querySelector('#snake-best');
+  const overlay = stageEl.querySelector('#snake-overlay');
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = CANVAS_SIZE * dpr;
   canvas.height = CANVAS_SIZE * dpr;
   ctx2d.scale(dpr, dpr);
 
-  let snake, dir, nextDir, food, score, tickMs, timer, running, gameOver;
+  let snake, dir, nextDir, food, score, eaten, tickMs, timer, running, gameOver;
+  let walls = [];
+  let wallSet = new Set();
 
   function colors() {
     const s = getComputedStyle(document.documentElement);
@@ -69,6 +126,7 @@ export function mount(container) {
       food: s.getPropertyValue('--color-danger').trim(),
       head: s.getPropertyValue('--color-primary').trim(),
       body: s.getPropertyValue('--color-secondary').trim(),
+      wall: s.getPropertyValue('--color-text').trim(),
     };
   }
 
@@ -93,10 +151,12 @@ export function mount(container) {
   }
 
   function placeFood() {
+    const free = GRID * GRID - snake.length - wallSet.size;
+    if (free <= 0) { food = null; return; }
     let pos;
     do {
       pos = { x: Math.floor(Math.random() * GRID), y: Math.floor(Math.random() * GRID) };
-    } while (snake.some((s) => s.x === pos.x && s.y === pos.y));
+    } while (wallSet.has(key(pos.x, pos.y)) || snake.some((s) => s.x === pos.x && s.y === pos.y));
     food = pos;
   }
 
@@ -106,10 +166,13 @@ export function mount(container) {
     dir = { x: 1, y: 0 };
     nextDir = { x: 1, y: 0 };
     score = 0;
-    tickMs = BASE_TICK_MS;
+    eaten = 0;
+    tickMs = levelMode ? api.config.tickMs : BASE_TICK_MS;
     gameOver = false;
+    walls = levelMode ? generateObstacles(api.config.obstacles, mid) : [];
+    wallSet = new Set(walls.map((w) => key(w.x, w.y)));
     placeFood();
-    scoreEl.textContent = '0';
+    scoreEl.textContent = levelMode ? `0/${target}` : '0';
   }
 
   function draw() {
@@ -123,21 +186,36 @@ export function mount(container) {
       }
     }
 
+    // Level walls: solid blocks with a lighter top edge so they read as raised.
+    walls.forEach((w) => {
+      const x = w.x * CELL + 1.5;
+      const y = w.y * CELL + 1.5;
+      const size = CELL - 3;
+      ctx2d.fillStyle = c.wall;
+      roundRect(x, y, size, size, 4);
+      ctx2d.fill();
+      ctx2d.fillStyle = 'rgba(255,255,255,0.13)';
+      roundRect(x + 2, y + 2, size - 4, size * 0.34, 3);
+      ctx2d.fill();
+    });
+
     // Food: glossy gradient orb with a soft glow instead of a flat square.
-    const fx = food.x * CELL + CELL / 2;
-    const fy = food.y * CELL + CELL / 2;
-    const fr = CELL / 2 - 2.5;
-    ctx2d.save();
-    ctx2d.shadowColor = c.food;
-    ctx2d.shadowBlur = 10;
-    const grad = ctx2d.createRadialGradient(fx - fr * 0.35, fy - fr * 0.35, fr * 0.15, fx, fy, fr);
-    grad.addColorStop(0, shade(c.food, 30));
-    grad.addColorStop(1, c.food);
-    ctx2d.fillStyle = grad;
-    ctx2d.beginPath();
-    ctx2d.arc(fx, fy, fr, 0, Math.PI * 2);
-    ctx2d.fill();
-    ctx2d.restore();
+    if (food) {
+      const fx = food.x * CELL + CELL / 2;
+      const fy = food.y * CELL + CELL / 2;
+      const fr = CELL / 2 - 2.5;
+      ctx2d.save();
+      ctx2d.shadowColor = c.food;
+      ctx2d.shadowBlur = 10;
+      const grad = ctx2d.createRadialGradient(fx - fr * 0.35, fy - fr * 0.35, fr * 0.15, fx, fy, fr);
+      grad.addColorStop(0, shade(c.food, 30));
+      grad.addColorStop(1, c.food);
+      ctx2d.fillStyle = grad;
+      ctx2d.beginPath();
+      ctx2d.arc(fx, fy, fr, 0, Math.PI * 2);
+      ctx2d.fill();
+      ctx2d.restore();
+    }
 
     // Snake: rounded, tapered, shaded segments drawn tail-first so the head sits on top.
     const last = snake.length - 1;
@@ -191,19 +269,30 @@ export function mount(container) {
     dir = nextDir;
     const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
     const hitsWall = head.x < 0 || head.x >= GRID || head.y < 0 || head.y >= GRID;
+    const hitsBlock = wallSet.has(key(head.x, head.y));
     const hitsSelf = snake.some((s) => s.x === head.x && s.y === head.y);
-    if (hitsWall || hitsSelf) {
-      endGame();
+    if (hitsWall || hitsBlock || hitsSelf) {
+      endGame(hitsBlock ? 'You ran into a wall.' : hitsWall ? 'You hit the edge.' : 'You ran into yourself.');
       return;
     }
     snake.unshift(head);
-    if (head.x === food.x && head.y === food.y) {
+    if (food && head.x === food.x && head.y === food.y) {
+      eaten += 1;
       score += 10;
-      scoreEl.textContent = String(score);
-      const nextTick = Math.max(MIN_TICK_MS, BASE_TICK_MS - Math.floor(score / 50) * 4);
-      if (nextTick !== tickMs) {
-        tickMs = nextTick;
-        scheduleTick();
+      if (levelMode) {
+        scoreEl.textContent = `${eaten}/${target}`;
+        if (eaten >= target) {
+          draw();
+          winLevel();
+          return;
+        }
+      } else {
+        scoreEl.textContent = String(score);
+        const nextTick = Math.max(MIN_TICK_MS, BASE_TICK_MS - Math.floor(score / 50) * 4);
+        if (nextTick !== tickMs) {
+          tickMs = nextTick;
+          scheduleTick();
+        }
       }
       placeFood();
     } else {
@@ -212,10 +301,21 @@ export function mount(container) {
     draw();
   }
 
-  function endGame() {
+  function winLevel() {
     gameOver = true;
     running = false;
     clearInterval(timer);
+    api.complete(`Ate all ${target} apples at ${tickMs}ms per step.`);
+  }
+
+  function endGame(reason) {
+    gameOver = true;
+    running = false;
+    clearInterval(timer);
+    if (levelMode) {
+      api.fail(`${reason} You had ${eaten} of ${target} apples.`);
+      return;
+    }
     const isNewBest = setBestIfHigher('snake', score);
     bestEl.textContent = String(getBest('snake'));
     overlay.innerHTML = `
@@ -289,7 +389,7 @@ export function mount(container) {
   window.addEventListener('keydown', onKeydown);
   document.addEventListener('visibilitychange', onVisibility);
   overlay.addEventListener('click', onOverlayClick);
-  container.querySelector('#snake-dpad').addEventListener('click', onDpadClick);
+  stageEl.querySelector('#snake-dpad').addEventListener('click', onDpadClick);
   canvas.addEventListener('touchstart', onTouchStart, { passive: true });
   canvas.addEventListener('touchend', onTouchEnd, { passive: true });
 
@@ -298,7 +398,20 @@ export function mount(container) {
 
   return function cleanup() {
     clearInterval(timer);
+    gameOver = true;
     window.removeEventListener('keydown', onKeydown);
     document.removeEventListener('visibilitychange', onVisibility);
   };
+}
+
+export function mount(container, meta) {
+  return mountSoloGame(container, {
+    gameId: 'snake',
+    gameName: 'Snake',
+    icon: (meta && meta.icon) || '🐍',
+    endlessLabel: 'Endless',
+    endlessDesc: 'No walls, no target — just eat and survive as long as you can.',
+    instructionsHtml: '<strong>Controls:</strong> Arrow keys or WASD on desktop, swipe the board or tap the pad on mobile. Avoid the edges, the walls and your own tail.',
+    start: startSnake,
+  });
 }

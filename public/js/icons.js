@@ -213,7 +213,87 @@ export const ICONS = {
       <path d="M6 16h9l3-5h12l3 5h9v22H6z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
       <circle cx="24" cy="27" r="7" stroke="currentColor" stroke-width="2.4"/>
     </svg>`,
+
+  'sym-rocket': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 4c7 6 11 14 11 22l-4 7H17l-4-7c0-8 4-16 11-22z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+      <circle cx="24" cy="19" r="4" stroke="currentColor" stroke-width="2.2"/>
+      <path d="M13 27 7 33l2 8 7-6M35 27l6 6-2 8-7-6" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+    </svg>`,
+
+  'sym-key': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="9" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M22.4 22.4 41 41" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M30 30l-4 4M35 35l-4 4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>`,
+
+  'sym-crown': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7 34 4 13l11 8 9-13 9 13 11-8-3 21z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M8 40h32" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>`,
+
+  'sym-flower': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="11" r="6.4" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="37" cy="24" r="6.4" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="24" cy="37" r="6.4" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="11" cy="24" r="6.4" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="24" cy="24" r="4" fill="currentColor"/>
+    </svg>`,
+
+  'sym-fish': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 24c4-7 10-11 16-11s13 4 16 11c-3 7-9 11-16 11S9 31 5 24z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M37 24l7-7v14z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+      <circle cx="15" cy="21" r="1.9" fill="currentColor"/>
+    </svg>`,
+
+  'sym-clock': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M24 13v11l8 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+
+  'sym-gift': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7 18h34v7H7zM10 25h28v17H10z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M24 18v24" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M24 18s-8 1-9-4c-1-4 5-6 7-2 1.6 3 2 6 2 6zm0 0s8 1 9-4c1-4-5-6-7-2-1.6 3-2 6-2 6z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+    </svg>`,
+
+  'sym-mountain': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 39 17 14l9 15 5-7 14 17z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+      <circle cx="37" cy="12" r="4" stroke="currentColor" stroke-width="2.2" opacity="0.65"/>
+    </svg>`,
+
+  'sym-note': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="13" cy="35" r="6" stroke="currentColor" stroke-width="2.4"/>
+      <circle cx="33" cy="31" r="6" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M19 35V13l20-4v22" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+    </svg>`,
+
+  'sym-umbrella': `
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 26a20 20 0 0 1 40 0z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M24 26v12a5 5 0 0 1-10 0" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>`,
 };
+
+/**
+ * Ids Memory Match draws its cards from. The level curve asks for up to 18
+ * distinct pairs, so this list has to stay at least that long — a board that
+ * reuses a symbol for a third card can never be fully matched.
+ */
+export const MEMORY_SYMBOLS = [
+  'sym-star', 'sym-heart', 'sym-bolt', 'sym-moon', 'sym-sun',
+  'sym-leaf', 'sym-diamond', 'sym-cloud', 'sym-anchor', 'sym-camera',
+  'sym-rocket', 'sym-key', 'sym-crown', 'sym-flower', 'sym-fish',
+  'sym-clock', 'sym-gift', 'sym-mountain', 'sym-note', 'sym-umbrella',
+];
 
 export function iconFor(id) {
   return ICONS[id] || '';
