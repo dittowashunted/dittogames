@@ -1,4 +1,5 @@
-import { mountOnlineGame } from '../online-shell.js';
+import { mountVersusGame } from '../versus.js';
+import * as rules from '../rules/supertictactoe.js';
 
 function renderBoard(boardEl, ctx) {
   const { state, isMyTurn, room, sendMove } = ctx;
@@ -42,7 +43,8 @@ function renderBoard(boardEl, ctx) {
 }
 
 export function mount(container, meta, params) {
-  return mountOnlineGame(container, {
+  return mountVersusGame(container, {
+    rules,
     gameId: 'super-tic-tac-toe',
     gameName: 'Super Tic Tac Toe',
     icon: (meta && meta.icon) || '🔳',

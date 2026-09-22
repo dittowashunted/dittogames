@@ -1,4 +1,5 @@
-import { mountOnlineGame } from '../online-shell.js';
+import { mountVersusGame } from '../versus.js';
+import * as rules from '../rules/connectfour.js';
 
 const ROWS = 6;
 const COLS = 7;
@@ -46,7 +47,8 @@ function renderBoard(boardEl, ctx) {
 }
 
 export function mount(container, meta, params) {
-  return mountOnlineGame(container, {
+  return mountVersusGame(container, {
+    rules,
     gameId: 'connect-four',
     gameName: 'Connect Four',
     icon: (meta && meta.icon) || '🔴',

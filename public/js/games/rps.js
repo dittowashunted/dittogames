@@ -1,4 +1,5 @@
-import { mountOnlineGame } from '../online-shell.js';
+import { mountVersusGame } from '../versus.js';
+import * as rules from '../rules/rps.js';
 import { iconFor } from '../icons.js';
 
 const CHOICE_ICON = { rock: iconFor('rock'), paper: iconFor('paper'), scissors: iconFor('scissors') };
@@ -88,7 +89,8 @@ function renderBoard(boardEl, ctx) {
 }
 
 export function mount(container, meta, params) {
-  return mountOnlineGame(container, {
+  return mountVersusGame(container, {
+    rules,
     gameId: 'rock-paper-scissors',
     gameName: 'Rock Paper Scissors',
     icon: (meta && meta.icon) || '✊',
